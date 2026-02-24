@@ -1,0 +1,1125 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="UTF-8" />
+  <title>至高種・組合せ検索</title>
+
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+  <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css">
+
+  <style>
+    body { font-family: Arial, sans-serif; margin: 16px; }
+    h2 { margin: 0 0 8px; }
+    .note { font-size: 13px; color:#444; margin: 0 0 10px; }
+    .container { display:flex; gap:14px; align-items:flex-start; flex-wrap: nowrap; }
+    .left { flex: 0 0 420px; width: 420px; min-width: 420px; max-width: 420px; padding: 10px; border: 1px solid #ddd; border-radius: 10px; background:#fff; }
+    .right { flex:1 1 auto; min-width:0; }
+    .row { margin: 10px 0; }
+    label { display:block; font-weight: 600; margin-bottom: 4px; }
+    button { padding: 8px 12px; cursor:pointer; }
+    button.smallbtn { padding: 6px 10px; font-size: 12px; }
+    .pill { display:inline-block; padding:2px 8px; border:1px solid #ddd; border-radius:999px; font-size:12px; margin-right:6px; }
+    #status { white-space: pre-wrap; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; background:#fafafa; border:1px solid #eee; padding:8px; border-radius:8px; min-height: 70px; }
+    .dt-wrap { overflow-x:hidden; border:1px solid #ddd; border-radius:10px; padding:8px; background:#fff; }
+    .small { font-size:12px; color:#666; }
+    .cond { font-size: 14px; color:#333; }
+    .warn { color:#b10000; font-weight:600; }
+    #dataTable { width: 100%; }
+
+    th.factor-col, td.factor-col {
+      width: 30px !important;
+      min-width: 30px !important;
+      max-width: 30px !important;
+      padding-left: 4px !important;
+      padding-right: 4px !important;
+      text-align: right !important;
+      white-space: nowrap;
+    }
+    th.factor-col { text-align:center !important; }
+
+    .owned-box { border:1px solid #ddd; border-radius:10px; padding:10px; background:#fff; }
+    .owned-header { display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:8px; }
+    .owned-title { font-weight:700; }
+    .owned-controls { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+    .owned-list { max-height: 300px; overflow:auto; border-top:1px solid #eee; padding-top:8px; }
+    .owned-item { border:1px solid #eee; border-radius:10px; padding:8px; margin-bottom:8px; }
+    .owned-item-head { display:flex; align-items:center; justify-content:space-between; gap:10px; cursor:pointer; user-select:none; }
+    .owned-leftline { display:flex; align-items:center; gap:8px; min-width:0; }
+    .owned-name { font-weight:700; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width: 270px; }
+    .owned-badges { font-size:12px; color:#555; white-space:nowrap; }
+    .owned-detail { display:none; margin-top:8px; border-top:1px dashed #eee; padding-top:8px; }
+    .owned-detail label { display:block; font-weight:normal; margin: 2px 0; }
+    .owned-actions { display:flex; gap:10px; flex-wrap:wrap; margin-top:8px; }
+
+    .togglebtn-on { border:1px solid #0b6; background:#e9fff6; }
+    .togglebtn-off { border:1px solid #bbb; background:#fff; }
+
+    @media (max-width: 900px){
+      .container{ flex-direction: column; }
+      .left{ width: 100% !important; min-width: 0 !important; max-width: none !important; flex: 1 1 auto !important; }
+      .right{ width:100%; }
+      #dataTable{ min-width: 900px; }
+      .owned-name{ max-width: 70vw; }
+    }
+  
+    /* ===== 追加: 因子列（短〜中）の縦枠線 ===== */
+
+    /* ===== 追加: 全列に縦枠線（現状と同じ色/太さ） ===== */
+    table.dataTable { border-collapse: collapse !important; table-layout: fixed; width: 100% !important; }
+    #dataTable th, #dataTable td { border-right: 1px solid #ddd !important; }
+    #dataTable th:first-child, #dataTable td:first-child { border-left: 1px solid #ddd !important; }
+
+    table.dataTable { border-collapse: collapse !important; }
+    #dataTable th.factor-col, #dataTable td.factor-col {
+      border-right: 1px solid #ddd !important;
+    }
+    /* 因子列の左端にも線 */
+    #dataTable th.factor-col.first-factor, #dataTable td.factor-col.first-factor {
+      border-left: 1px solid #ddd !important;
+    }
+
+  
+    /* ===== 選択列（選択1〜4）：画面内に収まるよう可変 + 折返し ===== */
+    #dataTable th.pick-col, #dataTable td.pick-col {
+      white-space: normal !important;
+      word-break: break-word;
+    }
+
+  
+    .topbar{ display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:8px; }
+    .theme-toggle{ display:flex; align-items:center; gap:8px; font-size:13px; color:#444; user-select:none; }
+    .theme-toggle input{ display:none; }
+    .theme-toggle .slider{
+      width:44px; height:24px; border-radius:999px; border:1px solid #bbb; background:#fff; position:relative; display:inline-block;
+    }
+    .theme-toggle .slider::after{
+      content:""; width:18px; height:18px; border-radius:50%; background:#bbb; position:absolute; top:2px; left:2px; transition: all .15s ease;
+    }
+    .theme-toggle input:checked + .slider{ background:#222; border-color:#444; }
+    .theme-toggle input:checked + .slider::after{ left:22px; background:#ddd; }
+
+    /* ===== ダークモード ===== */
+    body.dark { background:#0f1115; color:#e6e6e6; }
+    body.dark .left, body.dark .dt-wrap, body.dark .owned-box { background:#151922; border-color:#2a2f3a; }
+    body.dark .owned-item { border-color:#2a2f3a; }
+    body.dark #status { background:#111522; border-color:#2a2f3a; color:#e6e6e6; }
+    body.dark .small { color:#b8bfcc; }
+    body.dark .cond { color:#e6e6e6; }
+    body.dark .theme-toggle{ color:#e6e6e6; }
+    body.dark button { background:#1b2130; color:#e6e6e6; border:1px solid #2a2f3a; }
+    body.dark button:hover { filter: brightness(1.1); }
+    body.dark .togglebtn-on { border-color:#1fa36b; background:#0e2a1f; }
+    body.dark .togglebtn-off { border-color:#2a2f3a; background:#151922; }
+    body.dark #dataTable th, body.dark #dataTable td { border-right-color:#2a2f3a !important; }
+    body.dark #dataTable th:first-child, body.dark #dataTable td:first-child { border-left-color:#2a2f3a !important; }
+    body.dark table.dataTable { color:#e6e6e6; }
+    body.dark .dataTables_wrapper .dataTables_length, 
+    body.dark .dataTables_wrapper .dataTables_filter, 
+    body.dark .dataTables_wrapper .dataTables_info, 
+    body.dark .dataTables_wrapper .dataTables_paginate { color:#e6e6e6; }
+    body.dark .dataTables_wrapper .dataTables_paginate .paginate_button { color:#e6e6e6 !important; }
+
+  
+    /* ===== 追加: セル中央寄せ（使用頭数/種類数/短〜中） ===== */
+    th.num-col, td.num-col { text-align: center !important; }
+    th.factor-col, td.factor-col { text-align: center !important; }
+
+    /* ===== 追加: 因子列ヘッダの色（短〜中） ===== */
+    th.factor-col { border: 2px solid transparent; border-radius: 6px; }
+    th.factor-col.factor-短 { border-color: rgb(221,221,79); background: rgba(221,221,79,0.18); }
+    th.factor-col.factor-速 { border-color: rgb(221,221,163); background: rgba(221,221,163,0.18); }
+    th.factor-col.factor-底 { border-color: rgb(221,110,7); background: rgba(221,110,7,0.14); }
+    th.factor-col.factor-長 { border-color: rgb(0,221,221); background: rgba(0,221,221,0.14); }
+    th.factor-col.factor-適 { border-color: rgb(70,130,244); background: rgba(70,130,244,0.14); }
+    th.factor-col.factor-丈 { border-color: rgb(251,173,222); background: rgba(251,173,222,0.18); }
+    th.factor-col.factor-早 { border-color: rgb(0,249,0); background: rgba(0,249,0,0.12); }
+    th.factor-col.factor-晩 { border-color: rgb(168,221,5); background: rgba(168,221,5,0.14); }
+    th.factor-col.factor-堅 { border-color: rgb(162,162,164); background: rgba(162,162,164,0.16); }
+    th.factor-col.factor-難 { border-color: rgb(221,12,221); background: rgba(221,12,221,0.12); }
+    th.factor-col.factor-走 { border-color: rgb(221,221,221); background: rgba(221,221,221,0.18); }
+    th.factor-col.factor-中 { border-color: rgb(107,155,107); background: rgba(107,155,107,0.16); }
+
+    /* ===== 追加: 因子種類のバッジ ===== */
+    .factor-badges { display:flex; flex-wrap:wrap; gap:4px; }
+    .factor-badge { display:inline-block; padding:1px 6px; border-radius: 6px; border:2px solid transparent; font-weight:700; line-height: 1.2; }
+    .factor-badge.factor-短 { border-color: rgb(221,221,79); background: rgb(221,221,79); color:#000; }
+    .factor-badge.factor-速 { border-color: rgb(221,221,163); background: rgb(221,221,163); color:#000; }
+    .factor-badge.factor-底 { border-color: rgb(221,110,7); background: rgb(221,110,7); color:#000; }
+    .factor-badge.factor-長 { border-color: rgb(0,221,221); background: rgb(0,221,221); color:#000; }
+    .factor-badge.factor-適 { border-color: rgb(70,130,244); background: rgb(70,130,244); color:#000; }
+    .factor-badge.factor-丈 { border-color: rgb(251,173,222); background: rgb(251,173,222); color:#000; }
+    .factor-badge.factor-早 { border-color: rgb(0,249,0); background: rgb(0,249,0); color:#000; }
+    .factor-badge.factor-晩 { border-color: rgb(168,221,5); background: rgb(168,221,5); color:#000; }
+    .factor-badge.factor-堅 { border-color: rgb(162,162,164); background: rgb(162,162,164); color:#000; }
+    .factor-badge.factor-難 { border-color: rgb(221,12,221); background: rgb(221,12,221); color:#000; }
+    .factor-badge.factor-走 { border-color: rgb(221,221,221); background: rgb(221,221,221); color:#000; }
+    .factor-badge.factor-中 { border-color: rgb(107,155,107); background: rgb(107,155,107); color:#000; }
+
+    body.dark .factor-badge, body.dark th.factor-col { filter: brightness(1.0); }
+
+    /* ヘッダーを画像のようにくっきり */
+    #dataTable th.factor-col { font-weight: 800; }
+    #dataTable th.factor-col { box-shadow: inset 0 -1px 0 rgba(0,0,0,0.12); }
+    /* バッジもくっきり */
+    .factor-badge { font-weight: 800; }
+
+
+  
+    /* ===== 上書き: ヘッダー色を確実に反映 + 列（本文）も着色 ===== */
+    #dataTable thead th.factor-col.factor-短 { background: rgb(255,248,90) !important; border-color: rgb(255,248,90) !important; color: #000 !important; }
+    #dataTable tbody td.factor-col.factor-短 { background: rgba(255,248,90,0.10) !important; }
+    #dataTable thead th.factor-col.factor-速 { background: rgb(221,221,163) !important; border-color: rgb(221,221,163) !important; color: #000 !important; }
+    #dataTable tbody td.factor-col.factor-速 { background: rgba(221,221,163,0.10) !important; }
+    #dataTable thead th.factor-col.factor-底 { background: rgb(221,110,7) !important; border-color: rgb(221,110,7) !important; color: #000 !important; }
+    #dataTable tbody td.factor-col.factor-底 { background: rgba(221,110,7,0.10) !important; }
+    #dataTable thead th.factor-col.factor-長 { background: rgb(0,221,221) !important; border-color: rgb(0,221,221) !important; color: #000 !important; }
+    #dataTable tbody td.factor-col.factor-長 { background: rgba(0,221,221,0.10) !important; }
+    #dataTable thead th.factor-col.factor-適 { background: rgb(70,130,244) !important; border-color: rgb(70,130,244) !important; color: #000 !important; }
+    #dataTable tbody td.factor-col.factor-適 { background: rgba(70,130,244,0.10) !important; }
+    #dataTable thead th.factor-col.factor-丈 { background: rgb(251,173,222) !important; border-color: rgb(251,173,222) !important; color: #000 !important; }
+    #dataTable tbody td.factor-col.factor-丈 { background: rgba(251,173,222,0.10) !important; }
+    #dataTable thead th.factor-col.factor-早 { background: rgb(0,249,0) !important; border-color: rgb(0,249,0) !important; color: #000 !important; }
+    #dataTable tbody td.factor-col.factor-早 { background: rgba(0,249,0,0.10) !important; }
+    #dataTable thead th.factor-col.factor-晩 { background: rgb(168,221,5) !important; border-color: rgb(168,221,5) !important; color: #000 !important; }
+    #dataTable tbody td.factor-col.factor-晩 { background: rgba(168,221,5,0.10) !important; }
+    #dataTable thead th.factor-col.factor-堅 { background: rgb(162,162,164) !important; border-color: rgb(162,162,164) !important; color: #000 !important; }
+    #dataTable tbody td.factor-col.factor-堅 { background: rgba(162,162,164,0.10) !important; }
+    #dataTable thead th.factor-col.factor-難 { background: rgb(221,12,221) !important; border-color: rgb(221,12,221) !important; color: #000 !important; }
+    #dataTable tbody td.factor-col.factor-難 { background: rgba(221,12,221,0.10) !important; }
+    #dataTable thead th.factor-col.factor-走 { background: rgb(221,221,221) !important; border-color: rgb(221,221,221) !important; color: #000 !important; }
+    #dataTable tbody td.factor-col.factor-走 { background: rgba(221,221,221,0.10) !important; }
+    #dataTable thead th.factor-col.factor-中 { background: rgb(107,155,107) !important; border-color: rgb(107,155,107) !important; color: #000 !important; }
+    #dataTable tbody td.factor-col.factor-中 { background: rgba(107,155,107,0.10) !important; }
+
+    /* ===== 因子種類バッジ: モード別に文字色/縁取りを切替 ===== */
+    .factor-badge { font-weight: 800; }
+    body:not(.dark) .factor-badge { color:#000 !important; text-shadow: -1px 0 #fff, 1px 0 #fff, 0 -1px #fff, 0 1px #fff; }
+    body.dark .factor-badge { color:#fff !important; text-shadow: -1px 0 #000, 1px 0 #000, 0 -1px #000, 0 1px #000; }
+    .factor-badge.factor-短 { background: rgb(255,248,90) !important; border-color: rgb(255,248,90) !important; }
+    .factor-badge.factor-速 { background: rgb(221,221,163) !important; border-color: rgb(221,221,163) !important; }
+    .factor-badge.factor-底 { background: rgb(221,110,7) !important; border-color: rgb(221,110,7) !important; }
+    .factor-badge.factor-長 { background: rgb(0,221,221) !important; border-color: rgb(0,221,221) !important; }
+    .factor-badge.factor-適 { background: rgb(70,130,244) !important; border-color: rgb(70,130,244) !important; }
+    .factor-badge.factor-丈 { background: rgb(251,173,222) !important; border-color: rgb(251,173,222) !important; }
+    .factor-badge.factor-早 { background: rgb(0,249,0) !important; border-color: rgb(0,249,0) !important; }
+    .factor-badge.factor-晩 { background: rgb(168,221,5) !important; border-color: rgb(168,221,5) !important; }
+    .factor-badge.factor-堅 { background: rgb(162,162,164) !important; border-color: rgb(162,162,164) !important; }
+    .factor-badge.factor-難 { background: rgb(221,12,221) !important; border-color: rgb(221,12,221) !important; }
+    .factor-badge.factor-走 { background: rgb(221,221,221) !important; border-color: rgb(221,221,221) !important; }
+    .factor-badge.factor-中 { background: rgb(107,155,107) !important; border-color: rgb(107,155,107) !important; }
+
+  
+    /* ===== 追加: 因子ヘッダー文字もモード別に縁取り ===== */
+    body:not(.dark) #dataTable thead th.factor-col { 
+      color:#000 !important; 
+      text-shadow: -1px 0 #fff, 1px 0 #fff, 0 -1px #fff, 0 1px #fff;
+    }
+    body.dark #dataTable thead th.factor-col { 
+      color:#fff !important; 
+      text-shadow: -1px 0 #000, 1px 0 #000, 0 -1px #000, 0 1px #000;
+    }
+
+
+    /* ===== 追加: 判定条件の枠 ===== */
+    .cond-box{
+      border:1px solid #ddd;
+      border-radius:10px;
+      padding:10px;
+      margin:10px 0;
+      background: transparent;
+    }
+    body.dark .cond-box{ border-color:#2a2f3a; }
+    .cond-box .box-title{ font-weight:800; margin-bottom:8px; }
+
+
+    /* ===== 追加: 右表の横線（ダークでも見えるよう縦線と同色） ===== */
+    #dataTable th, #dataTable td { border-bottom: 1px solid #ddd !important; }
+    body.dark #dataTable th, body.dark #dataTable td { border-bottom-color: #2a2f3a !important; }
+
+  </style>
+</head>
+<body>
+  <div class="topbar">
+  <h2 style="margin:0;">至高種・組合せ検索</h2>
+  <label class="theme-toggle">
+    <span>ダーク</span>
+    <input type="checkbox" id="chkDarkMode">
+    <span class="slider"></span>
+  </label>
+</div>
+<div class="container">
+    <div class="left">
+
+      <div class="cond-box">
+          <div class="box-title">判定条件</div>
+<div class="row">
+        <label>判定条件</label>
+        <div class="cond">
+          <div><input type="checkbox" id="chkUniqueContribution" checked> 固有貢献（各要素が“他に無い種類”を1つ以上持つ）</div>
+
+          <div style="margin-top:6px;">
+            <span>探索頭数：</span>
+            <label style="display:inline; font-weight:normal;"><input type="checkbox" id="chkSize3" checked> 3頭</label>
+            <label style="display:inline; font-weight:normal; margin-left:10px;"><input type="checkbox" id="chkSize4" checked> 4頭（不足時/補助）</label>
+          </div>
+
+          <div style="margin-top:6px;">
+            <span>成立条件：</span>
+            <label style="display:inline; font-weight:normal;"><input type="radio" name="thresh" value="5"> 5種</label>
+            <label style="display:inline; font-weight:normal; margin-left:10px;"><input type="radio" name="thresh" value="6" checked> 6種以上</label>
+            <label style="display:inline; font-weight:normal; margin-left:10px;"><input type="radio" name="thresh" value="7"> 7種以上</label>
+            <label style="display:inline; font-weight:normal; margin-left:10px;"><input type="radio" name="thresh" value="8"> 8種以上</label>
+          </div>
+
+          <div style="margin-top:6px;">
+            <span>祖先因子：</span>
+            <label style="display:inline; font-weight:normal;"><input type="checkbox" id="chkUseAncestor" checked> 使用する（mydata全体から証跡集計）</label>
+          </div>
+        
+          <div style="margin-top:6px;">
+            <span>あと１因子で至高チェック：</span>
+            <button id="btnNearMiss" type="button" class="smallbtn togglebtn-off">あと１因子: OFF</button>
+          </div>
+</div>
+      </div>
+        </div>
+
+<div class="row">
+        <div class="owned-box">
+          <div class="owned-header">
+            <div class="owned-title">保有馬管理（バリエーション単位）</div>
+            <div class="owned-controls small">
+              <button id="btnFilterOwned" type="button" class="smallbtn togglebtn-off">右表に反映: OFF</button>
+            </div>
+          </div>
+
+          <div class="small" style="margin-bottom:6px;">チェックはローカルストレージに保存され、次回も復元されます。</div>
+
+          <div class="owned-actions">
+            <button id="btnOwnedAll" type="button" class="smallbtn">表示中を全チェック</button>
+            <button id="btnOwnedNone" type="button" class="smallbtn">表示中を全解除</button>
+            <button id="btnOwnedToggleExpand" type="button" class="smallbtn">展開/折り畳み切替</button>
+            <button id="btnOwnedClearStorage" type="button" class="smallbtn">保存クリア</button>
+          </div>
+
+          <div id="ownedList" class="owned-list">
+            <div class="small">読み込み中...</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="right">
+      <div class="dt-wrap">
+        <table id="dataTable" class="display">
+          <thead></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+<script>
+function parseCSVRobust(text) {
+  const rows = [];
+  let row = [];
+  let field = "";
+  let inQuotes = false;
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    if (inQuotes) {
+      if (c === '"') {
+        if (text[i + 1] === '"') { field += '"'; i++; }
+        else { inQuotes = false; }
+      } else field += c;
+    } else {
+      if (c === '"') inQuotes = true;
+      else if (c === ',') { row.push(field); field = ""; }
+      else if (c === '\n') { row.push(field); field = ""; rows.push(row); row = []; }
+      else if (c === '\r') {}
+      else field += c;
+    }
+  }
+  row.push(field); rows.push(row);
+  return rows.filter(r => !(r.length === 1 && (r[0] ?? "").trim() === ""));
+}
+function toHeaderMap(headerRow){
+  const map = {};
+  headerRow.forEach((h,i)=>{
+    const key = String(h || '').replace(/^\uFEFF/, '').trim();
+    map[key] = i;
+  });
+  return map;
+}
+function nfkc(s){ return (s ?? '').toString().normalize('NFKC'); }
+function normalizeHorseName(name){
+  let s = nfkc(name).trim();
+  s = s.replace(/-[^-]+-/g, '-');
+  s = s.replace(/-+/g, '-');
+  s = s.replace(/^-+/, '').replace(/-+$/, '');
+  s = s.replace(/\b(19|20)\d{2}\b/g, '');
+  s = s.replace(/\s+/g, ' ').trim();
+  return s;
+}
+
+function makeKanaSortKey(name){
+  // 五十音順ソート用キー。ひらがな→カタカナ、ヴは「ヴ」（ウ + 結合濁点）として扱い、ウの直後に来るようにする。
+  let s = nfkc(name).trim().normalize('NFKC');
+  s = s.replace(/[\u3041-\u3096]/g, ch => String.fromCharCode(ch.charCodeAt(0) + 0x60)); // hira->kata
+  s = s.replace(/ヴ/g, 'ウ\u3099'); // ヴ -> ヴ
+  return s;
+}
+const FACTOR_TYPES = ["短","速","底","長","適","丈","早","晩","堅","難","走","中"];
+const FACTOR_SET = new Set(FACTOR_TYPES);
+
+function setStatus(msg){ const el=document.getElementById('status'); if(el) el.textContent = msg; }
+function setWarn(msg){ const el=document.getElementById('warnbox'); if(!el) return; if(msg){ el.style.display=''; el.textContent=msg; } else { el.style.display='none'; el.textContent=''; } }
+function factorsFromRow(row, idxMap){
+  const f = [];
+  ["因子1","因子2","因子3"].forEach(col=>{
+    const i = idxMap[col];
+    if(i === undefined) return;
+    const v = (row[i] ?? '').toString().trim();
+    if(v && FACTOR_SET.has(v)) f.push(v);
+  });
+  return f;
+}
+function unionTypes(factorsArr){
+  const s = new Set();
+  factorsArr.forEach(fs => fs.forEach(x => s.add(x)));
+  return s;
+}
+function countFactorsWithDup(factorsArr){
+  const counts = {};
+  FACTOR_TYPES.forEach(t=>counts[t]=0);
+  for(const fs of factorsArr){
+    for(const x of fs){
+      if(counts[x] !== undefined) counts[x] += 1;
+    }
+  }
+  return counts;
+}
+function uniqueContributionOK(factorsArr){
+  for(let i=0;i<factorsArr.length;i++){
+    const mine = new Set(factorsArr[i]);
+    const others = new Set();
+    for(let j=0;j<factorsArr.length;j++){
+      if(j===i) continue;
+      factorsArr[j].forEach(x=>others.add(x));
+    }
+    let ok=false;
+    for(const x of mine){ if(!others.has(x)){ ok=true; break; } }
+    if(!ok) return false;
+  }
+  return true;
+}
+function combinations(arr, k){
+  const res = [];
+  const n = arr.length;
+  if(k>n) return res;
+  const idx = Array.from({length:k}, (_,i)=>i);
+  while(true){
+    res.push(idx.map(i=>arr[i]));
+    let i=k-1;
+    while(i>=0 && idx[i]===i+n-k) i--;
+    if(i<0) break;
+    idx[i]++;
+    for(let j=i+1;j<k;j++) idx[j]=idx[j-1]+1;
+  }
+  return res;
+}
+
+let g_idx=null;
+let g_groupsByNorm=null;
+let g_variationsByNorm=null;
+let g_ancestorTypesByNorm=null;
+let g_masterOut=null;
+let g_lastOut=null;
+let g_dt=null;
+
+const LS_KEY_OWNED_VAR="shiko_owned_variations_v6";
+const LS_KEY_OWNED_FILTER="shiko_owned_filter_on_v6";
+const LS_KEY_DARK_MODE="shiko_dark_mode_v1";
+let g_ownedVar=new Set();
+let g_ownedFilterOn=false;
+let g_ownedExpanded = new Set(); // 正規化馬名の展開状態
+let g_nearMissOn=false;
+let g_lastNormalHorseSet=null; // 通常成立馬名セット（除外用）
+let g_lastNormalOut=null;
+
+
+async function fetchText(url){
+  const res = await fetch(url, { cache: "no-store" });
+  if(!res.ok) throw new Error(`fetch失敗: ${url} (${res.status})`);
+  return await res.text();
+}
+function loadOwnedFromStorage(){
+  try{
+    const raw = localStorage.getItem(LS_KEY_OWNED_VAR);
+    if(raw){
+      const arr = JSON.parse(raw);
+      if(Array.isArray(arr)) g_ownedVar = new Set(arr.map(x=>String(x)));
+    }
+  }catch(e){}
+  try{
+    const f = localStorage.getItem(LS_KEY_OWNED_FILTER);
+    if(f === "1") g_ownedFilterOn = true;
+  }catch(e){}
+}
+function saveOwnedToStorage(){
+  try{ localStorage.setItem(LS_KEY_OWNED_VAR, JSON.stringify(Array.from(g_ownedVar))); }catch(e){}
+}
+function saveOwnedFilterToStorage(){
+  try{ localStorage.setItem(LS_KEY_OWNED_FILTER, g_ownedFilterOn ? "1" : "0"); }catch(e){}
+}
+
+function loadDarkMode(){
+  try{
+    const v = localStorage.getItem(LS_KEY_DARK_MODE);
+    return v === "1";
+  }catch(e){ return false; }
+}
+function saveDarkMode(on){
+  try{ localStorage.setItem(LS_KEY_DARK_MODE, on ? "1" : "0"); }catch(e){}
+}
+function applyDarkMode(on){
+  document.body.classList.toggle('dark', !!on);
+  const cb = document.getElementById('chkDarkMode');
+  if(cb) cb.checked = !!on;
+}
+
+function detectAncestorPrefixes(idxMap){
+  const prefixes = new Set();
+  Object.keys(idxMap).forEach(col=>{
+    const m = col.match(/^(.+)_因子[12]$/);
+    if(!m) return;
+    const p = m[1];
+    if(idxMap[p] !== undefined && idxMap[p + "_因子1"] !== undefined && idxMap[p + "_因子2"] !== undefined){
+      prefixes.add(p);
+    }
+  });
+  return Array.from(prefixes);
+}
+function computeAncestorEvidenceTypes(rows, idxMap){
+  const prefixes = detectAncestorPrefixes(idxMap);
+  if(prefixes.length === 0){
+    setWarn('警告: mydata.csv に祖先スロット列（例: 父 / 父_因子1 / 父_因子2）が見つかりません。祖先因子は付与されません。');
+    return new Map();
+  }
+
+  // 証跡 dedup 方針:
+  // 祖先名(正規化) + 因子 + 子（行の馬名・正規化）で重複を除外して集計する
+  // 例: 同じ子で同じ祖先因子が複数行に現れても 1 回として数える
+  const seen = new Map();     // ancNorm -> Set(childNorm	factor)
+  const freqByAnc = new Map();// ancNorm -> {短:..}
+
+  for(const r of rows){
+    const childRaw = (idxMap["馬名"] !== undefined) ? (r[idxMap["馬名"]] ?? '').toString().trim() : '';
+    const childNorm = normalizeHorseName(childRaw);
+
+    for(const p of prefixes){
+      const ancRaw = (r[idxMap[p]] ?? '').toString().trim();
+      if(!ancRaw) continue;
+      const ancNorm = normalizeHorseName(ancRaw);
+      if(!ancNorm) continue;
+
+      if(!seen.has(ancNorm)) seen.set(ancNorm, new Set());
+      const seenSet = seen.get(ancNorm);
+
+      if(!freqByAnc.has(ancNorm)){
+        const o = {};
+        FACTOR_TYPES.forEach(t=>o[t]=0);
+        freqByAnc.set(ancNorm, o);
+      }
+      const freq = freqByAnc.get(ancNorm);
+
+      const slots = [p + "_因子1", p + "_因子2"];
+      for(const col of slots){
+        const i = idxMap[col];
+        if(i === undefined) continue;
+        const f = (r[i] ?? '').toString().trim();
+        if(!FACTOR_SET.has(f)) continue;
+
+        const key = (childNorm || '') + "	" + f;
+        if(seenSet.has(key)) continue;
+        seenSet.add(key);
+        freq[f] += 1;
+      }
+    }
+  }
+
+  const out = new Map();
+  for(const [anc, freq] of freqByAnc.entries()){
+    const candidates = FACTOR_TYPES
+      .map(t=>({t, c: freq[t]}))
+      .filter(x=>x.c>0)
+      .sort((a,b)=>{
+        if(b.c !== a.c) return b.c - a.c;
+        return FACTOR_TYPES.indexOf(a.t) - FACTOR_TYPES.indexOf(b.t);
+      });
+
+    const picked = candidates.slice(0,2).map(x=>x.t);
+    if(picked.length) out.set(anc, picked);
+  }
+  return out;
+}
+
+function prepareMydata(csvText){
+  const parsed = parseCSVRobust(csvText);
+  const header = (parsed[0] || []).map(h => String(h || '').replace(/^\uFEFF/, '').trim());
+  const rows   = (parsed.slice(1) || []).map(r=>{
+    const rr = r.slice(0, header.length);
+    while(rr.length < header.length) rr.push("");
+    return rr;
+  });
+
+  const idx = toHeaderMap(header);
+  const required = ["馬名","因子1","因子2","因子3"];
+  for(const k of required){
+    if(idx[k] === undefined) throw new Error(`mydata.csv に必要列 "${k}" が見つかりません。`);
+  }
+
+  const groups = new Map();
+  const variationsByNorm = new Map();
+
+  for(const r of rows){
+    const name = (r[idx["馬名"]] ?? "").toString();
+    const nn = normalizeHorseName(name);
+    if(!nn) continue;
+
+    if(!groups.has(nn)) groups.set(nn, []);
+    groups.get(nn).push(r);
+
+    if(!variationsByNorm.has(nn)) variationsByNorm.set(nn, new Set());
+    variationsByNorm.get(nn).add(name);
+  }
+
+  const ancTypes = computeAncestorEvidenceTypes(rows, idx);
+  return { idx, groups, variationsByNorm, ancTypes, rowsCount: rows.length };
+}
+
+function buildSelfElements(groupRows){
+  const elements = [];
+  for(const r of groupRows){
+    const f = factorsFromRow(r, g_idx);
+    if(f.length===0) continue;
+    const name = (r[g_idx["馬名"]] ?? "").toString();
+    elements.push({ label: `${name}(${f.join('')})`, factors: f, source: "self" });
+  }
+  return elements;
+}
+function buildAncestorElementForHorse(horseNormName){
+  if(!g_ancestorTypesByNorm) return [];
+  const arr = g_ancestorTypesByNorm.get(horseNormName);
+  if(!arr || arr.length === 0) return [];
+  return [{ label: `[祖]${horseNormName}(${arr.join('')})`, factors: arr, source: "ancestor" }];
+}
+
+function compute6PlusCore(opts){
+  if(!g_groupsByNorm) throw new Error('mydata が未読み込みです。');
+
+  const uniqueContribution = !!opts.uniqueContribution;
+  const useAncestor = !!opts.useAncestor;
+
+  const thresh = Number(opts.thresh || 6);
+  let trySizes = Array.isArray(opts.trySizes) ? opts.trySizes.slice() : [];
+  trySizes = trySizes.map(x=>parseInt(x,10)).filter(x=>Number.isFinite(x) && x>0);
+  if(trySizes.length === 0) return [];
+
+  const minK = Math.min.apply(null, trySizes);
+
+  const out = [];
+  const normNames = Array.from(g_groupsByNorm.keys()).sort((a,b)=>a.localeCompare(b,'ja'));
+
+  for(let h=0; h<normNames.length; h++){
+    const nn = normNames[h];
+    if((h+1) % 50 === 0){
+      setStatus(`処理中... ${h+1}/${normNames.length}
+（ブラウザ内で計算しています）`);
+    }
+
+    let elements = buildSelfElements(g_groupsByNorm.get(nn));
+    if(useAncestor) elements = elements.concat(buildAncestorElementForHorse(nn));
+    if(elements.length < minK) continue;
+
+    for(const k of trySizes){
+      if(elements.length < k) continue;
+      const combs = combinations(elements, k);
+
+      for(const comb of combs){
+        const factorsArr = comb.map(x=>x.factors);
+        const types = unionTypes(factorsArr);
+        if(types.size < thresh) continue;
+        if(uniqueContribution && !uniqueContributionOK(factorsArr)) continue;
+
+        const counts = countFactorsWithDup(factorsArr);
+        const pickLabels = comb.map(x=>x.label);
+        while(pickLabels.length < 4) pickLabels.push("");
+
+        out.push({
+          "馬名": nn,
+          "使用頭数": k,
+          "種類数": types.size,
+          "因子種類": Array.from(types).sort((a,b)=>FACTOR_TYPES.indexOf(a)-FACTOR_TYPES.indexOf(b)).join(" "),
+          ...counts,
+          "選択1": pickLabels[0],
+          "選択2": pickLabels[1],
+          "選択3": pickLabels[2],
+          "選択4": pickLabels[3],
+        });
+      }
+    }
+  }
+
+  return out;
+}
+
+function compute6Plus(){
+  if(!g_groupsByNorm) throw new Error('mydata が未読み込みです。');
+
+  const uniqueContribution = document.getElementById('chkUniqueContribution').checked;
+  const do3 = document.getElementById('chkSize3').checked;
+  const do4 = document.getElementById('chkSize4').checked;
+  const threshSel = Number(document.querySelector('input[name="thresh"]:checked').value || "6");
+  const useAncestor = document.getElementById('chkUseAncestor').checked;
+
+  let normalTrySizes = [];
+  if(do3) normalTrySizes.push(3);
+  if(do4) normalTrySizes.push(4);
+  if(normalTrySizes.length === 0) normalTrySizes = [3,4];
+
+  if(!g_nearMissOn){
+    setStatus('計算中...');
+    const out = compute6PlusCore({ uniqueContribution, useAncestor, trySizes: normalTrySizes, thresh: threshSel });
+    // 「通常成立馬名セット」を更新（近似表示時の除外に使う）
+    g_lastNormalOut = out.slice();
+    g_lastNormalHorseSet = new Set(out.map(r => r["馬名"]).filter(Boolean));
+    setStatus(`完了
+対象馬（正規化）: ${g_groupsByNorm.size}
+成立行: ${out.length}`);
+    return out;
+  }
+
+  // 近似（あと１因子）: 強制 2/3頭・5種
+  // ただし「通常（3/4頭・6種以上）で成立する馬名」は除外
+  if(!g_lastNormalHorseSet){
+    setStatus('計算中...');
+    const normalOut = compute6PlusCore({ uniqueContribution, useAncestor, trySizes: normalTrySizes, thresh: Math.max(6, threshSel) });
+    g_lastNormalOut = normalOut.slice();
+    g_lastNormalHorseSet = new Set(normalOut.map(r => r["馬名"]).filter(Boolean));
+  }
+
+  setStatus('計算中...');
+  const nmOutAll = compute6PlusCore({ uniqueContribution, useAncestor, trySizes: [2,3], thresh: 5 });
+  const nmOut = nmOutAll.filter(r => !g_lastNormalHorseSet.has(r["馬名"]));
+  setStatus(`完了
+対象馬（正規化）: ${g_groupsByNorm.size}
+成立行: ${nmOut.length}`);
+  return nmOut;
+}
+
+
+function extractVariantNameFromSelectionLabel(sel){
+  if(!sel) return "";
+  const s = String(sel).trim();
+  if(!s) return "";
+  if(s.startsWith("[祖]")) return "__ANCESTOR__";
+  return s.replace(/\(.*$/, '');
+}
+function rowIsOwnedOnly(rowObj){
+  const picks = [rowObj["選択1"], rowObj["選択2"], rowObj["選択3"], rowObj["選択4"]];
+  const needed = [];
+  for(const p of picks){
+    const v = extractVariantNameFromSelectionLabel(p);
+    if(!v) continue;
+    if(v === "__ANCESTOR__") continue;
+    needed.push(v);
+  }
+  if(needed.length === 0) return false;
+  for(const v of needed){
+    if(!g_ownedVar.has(v)) return false;
+  }
+  return true;
+}
+function applyOwnedFilter(out){
+  let filtered = out;
+
+  // 右表への反映（保有バリエーションのみ）
+  if(g_ownedFilterOn){
+    filtered = filtered.filter(r => rowIsOwnedOnly(r));
+  }
+
+  return filtered;
+}
+
+function buildTable(data){
+  // 左のリストと同じ「五十音順（ヴはウの次）」で初期表示したいので、
+  // 馬名から作ったソートキー列（非表示）を先頭に追加して、それで並べ替えます。
+  const cols = ["__sort","馬名","使用頭数","種類数","因子種類", ...FACTOR_TYPES, "選択1","選択2","選択3","選択4"];
+
+  const thead = document.querySelector('#dataTable thead');
+  thead.innerHTML = '<tr>' + cols.map((c)=>{
+    if(c === "__sort") return '<th style="display:none;">__sort</th>';
+
+    const isPick = (c === "選択1" || c === "選択2" || c === "選択3" || c === "選択4");
+    const isNum  = (c === "使用頭数" || c === "種類数");
+
+    if(FACTOR_SET.has(c)){
+      return `<th class="factor-col factor-${c}">${c}</th>`;
+    }
+    if(isNum){
+      return `<th class="num-col">${c}</th>`;
+    }
+    if(isPick){
+      return `<th class="pick-col">${c}</th>`;
+    }
+    return `<th>${c}</th>`;
+  }).join('') + '</tr>';
+
+  const rows = data.map(r => {
+    const name = (r["馬名"] ?? "").toString();
+    const sortKey = makeKanaSortKey(name);
+    return cols.map(c => {
+      if(c === "__sort") return sortKey;
+
+      if(c === "因子種類"){
+        const parts = String(r[c] ?? "").split(/\s+/).filter(x=>x);
+        return '<div class="factor-badges">' + parts.map(f=>`<span class="factor-badge factor-${f}">${f}</span>`).join('') + '</div>';
+      }
+
+      return (r[c] ?? "").toString();
+    });
+  });
+
+  if($.fn.DataTable.isDataTable("#dataTable")){
+    $("#dataTable").DataTable().destroy();
+  }
+
+  const factorStart = cols.indexOf("短");
+  const factorEnd   = cols.indexOf("中");
+
+  g_dt = $("#dataTable").DataTable({
+    data: rows,
+    columns: cols.map((c)=>({ title:c, visible: c !== "__sort" })),
+    scrollX: false,
+    pageLength: 25,
+    autoWidth: false,
+    deferRender: true,
+    scrollCollapse: true,
+    // 初期表示：五十音順（__sort で昇順）
+    order: [[0,'asc']],
+    columnDefs: [
+      { targets: [factorStart],
+    createdRow: function(row, data, dataIndex){
+      // 因子列（短〜中）に factor-xx クラスを付与して列着色を有効化
+      const colIndex = {
+        '短': cols.indexOf('短'), '速': cols.indexOf('速'), '底': cols.indexOf('底'), '長': cols.indexOf('長'),
+        '適': cols.indexOf('適'), '丈': cols.indexOf('丈'), '早': cols.indexOf('早'), '晩': cols.indexOf('晩'),
+        '堅': cols.indexOf('堅'), '難': cols.indexOf('難'), '走': cols.indexOf('走'), '中': cols.indexOf('中')
+      };
+      Object.keys(colIndex).forEach(k=>{
+        const idx = colIndex[k];
+        if(idx >= 0){
+          const cell = row.cells[idx];
+          if(cell) cell.classList.add('factor-' + k);
+        }
+      });
+    }, className: 'factor-col first-factor' },
+      { targets: Array.from({length: factorEnd - factorStart + 1}, (_,i)=>factorStart+i).slice(1), className: 'factor-col' },
+      { targets: [cols.indexOf("使用頭数"), cols.indexOf("種類数")], className: 'num-col' },
+      { targets: [cols.indexOf("選択1"), cols.indexOf("選択2"), cols.indexOf("選択3"), cols.indexOf("選択4")], className: 'pick-col' }
+    ]
+  });
+
+  // レイアウト崩れ対策: 初期化直後に幅調整（特に再計算時）
+  setTimeout(()=>{ try{ g_dt.columns.adjust().draw(false); }catch(e){} }, 0);
+  setTimeout(()=>{ try{ g_dt.columns.adjust().draw(false); }catch(e){} }, 200);
+}
+
+function refreshTable(){
+  if(!g_lastOut){ buildTable([]); return; }
+  buildTable(applyOwnedFilter(g_lastOut));
+  setTimeout(()=>{ try{ if(g_dt) g_dt.columns.adjust().draw(false); }catch(e){} }, 0);
+  setTimeout(()=>{ try{ if(g_dt) g_dt.columns.adjust().draw(false); }catch(e){} }, 200);
+}
+
+function escapeHtml(s){
+  return String(s).replace(/[&<>"']/g, (c)=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+}
+function escapeAttr(s){ return escapeHtml(s); }
+function cssEscape(s){ return String(s).replace(/["\\]/g, '\\$&'); }
+
+function renderOwnedListFromOut(out){
+  const listEl = document.getElementById('ownedList');
+  const candSet = new Set(out.map(r => r["馬名"]).filter(Boolean));
+  const candidates = Array.from(candSet).sort((a,b)=>a.localeCompare(b,'ja'));
+
+  if(candidates.length === 0){
+    listEl.innerHTML = '<div class="small">表示対象がありません</div>';
+    return;
+  }
+
+  const parts = [];
+  for(const nn of candidates){
+    const varsSet = g_variationsByNorm && g_variationsByNorm.get(nn) ? g_variationsByNorm.get(nn) : new Set();
+    const vars = Array.from(varsSet).sort((a,b)=>a.localeCompare(b,'ja'));
+    const checkedCount = vars.filter(v=>g_ownedVar.has(v)).length;
+
+    parts.push(`
+      <div class="owned-item">
+        <div class="owned-item-head" data-toggle="${escapeAttr(nn)}">
+          <div class="owned-leftline">
+            <div class="owned-name" title="${escapeAttr(nn)}">${escapeHtml(nn)}</div>
+          </div>
+          <div class="owned-badges">保有 ${checkedCount}/${vars.length} ${g_ownedExpanded.has(nn) ? '▴' : '▾'}</div>
+        </div>
+        <div class="owned-detail" data-detail="${escapeAttr(nn)}" style="${g_ownedExpanded.has(nn) ? "display:block;" : "display:none;"}">
+          ${vars.map(v=>{
+            const checked = g_ownedVar.has(v) ? 'checked' : '';
+            return `<label><input type="checkbox" class="owned-check" data-var="${escapeAttr(v)}" ${checked}> ${escapeHtml(v)}</label>`;
+          }).join('')}
+        </div>
+      </div>
+    `);
+  }
+
+  listEl.innerHTML = parts.join('');
+
+  listEl.querySelectorAll('.owned-check').forEach(cb=>{
+    cb.addEventListener('change', (e)=>{
+      const v = e.target.getAttribute('data-var');
+      if(e.target.checked) g_ownedVar.add(v);
+      else g_ownedVar.delete(v);
+      // 保存タイミング：変更のたびに即時
+      saveOwnedToStorage();
+
+      // 反映ONなら右表だけ更新、OFFならバッジ更新のため再描画
+      if(g_ownedFilterOn){
+        refreshTable();
+      }else{
+        // 展開状態を維持したまま、当該馬のバッジだけ更新
+        const item = e.target.closest('.owned-item');
+        if(item){
+          const head = item.querySelector('.owned-item-head');
+          const detail = item.querySelector('.owned-detail');
+          const badge = head ? head.querySelector('.owned-badges') : null;
+          if(badge && detail){
+            const total = detail.querySelectorAll('.owned-check').length;
+            const checked = detail.querySelectorAll('.owned-check:checked').length;
+            badge.textContent = `保有 ${checked}/${total} ` + (g_ownedExpanded.has((head.getAttribute('data-toggle')||'')) ? '▴' : '▾');
+          }
+        }
+      }
+    });
+  });
+
+  listEl.querySelectorAll('[data-toggle]').forEach(head=>{
+    head.addEventListener('click', (e)=>{
+      if(e.target && e.target.tagName === 'INPUT') return;
+      const nn = head.getAttribute('data-toggle');
+      const detail = listEl.querySelector(`.owned-detail[data-detail="${cssEscape(nn)}"]`);
+      if(!detail) return;
+      const isOpen = detail.style.display === 'block';
+      const nextOpen = !isOpen;
+      detail.style.display = nextOpen ? 'block' : 'none';
+      if(nextOpen) g_ownedExpanded.add(nn); else g_ownedExpanded.delete(nn);
+      const badge = head.querySelector('.owned-badges');
+      if(badge){
+        // 末尾の矢印だけ更新
+        const base = badge.textContent.replace(/[▾▴]$/, '').trim();
+        badge.textContent = base + ' ' + (g_ownedExpanded.has(nn) ? '▴' : '▾');
+      }
+    });
+  });
+}
+
+function updateOwnedFilterButton(){
+  const btn = document.getElementById('btnFilterOwned');
+  if(g_ownedFilterOn){
+    btn.textContent = '右表に反映: ON';
+    btn.classList.remove('togglebtn-off');
+    btn.classList.add('togglebtn-on');
+  }else{
+    btn.textContent = '右表に反映: OFF';
+    btn.classList.remove('togglebtn-on');
+    btn.classList.add('togglebtn-off');
+  }
+}
+
+function updateNearMissButton(){
+  const btn = document.getElementById('btnNearMiss');
+  if(!btn) return;
+  if(g_nearMissOn){
+    btn.textContent = 'あと１因子: ON';
+    btn.classList.remove('togglebtn-off');
+    btn.classList.add('togglebtn-on');
+  }else{
+    btn.textContent = 'あと１因子: OFF';
+    btn.classList.remove('togglebtn-on');
+    btn.classList.add('togglebtn-off');
+  }
+}
+
+document.getElementById('btnFilterOwned').addEventListener('click', ()=>{
+  g_ownedFilterOn = !g_ownedFilterOn;
+  saveOwnedFilterToStorage();
+  updateOwnedFilterButton();
+  g_nearMissOn = false;
+  g_lastNormalHorseSet = null;
+  g_lastNormalOut = null;
+  updateNearMissButton();
+
+  bindRecomputeInputs();
+  refreshTable();
+});
+
+document.getElementById('btnNearMiss').addEventListener('click', ()=>{
+  g_nearMissOn = !g_nearMissOn;
+  updateNearMissButton();
+  scheduleRecompute();
+});
+
+document.getElementById('btnOwnedAll').addEventListener('click', ()=>{
+  const listEl = document.getElementById('ownedList');
+  listEl.querySelectorAll('.owned-check').forEach(cb=>{
+    cb.checked = true;
+    g_ownedVar.add(cb.getAttribute('data-var'));
+  });
+  saveOwnedToStorage();
+  if(g_ownedFilterOn) refreshTable();
+  renderOwnedListFromOut(g_masterOut || g_lastOut || []);
+});
+document.getElementById('btnOwnedNone').addEventListener('click', ()=>{
+  const listEl = document.getElementById('ownedList');
+  listEl.querySelectorAll('.owned-check').forEach(cb=>{
+    cb.checked = false;
+    g_ownedVar.delete(cb.getAttribute('data-var'));
+  });
+  saveOwnedToStorage();
+  if(g_ownedFilterOn) refreshTable();
+  renderOwnedListFromOut(g_masterOut || g_lastOut || []);
+});
+
+document.getElementById('btnOwnedToggleExpand').addEventListener('click', ()=>{
+  const listEl = document.getElementById('ownedList');
+  const details = Array.from(listEl.querySelectorAll('.owned-detail'));
+  const anyClosed = details.some(d => d.style.display !== 'block');
+  // anyClosed=true → 全展開、false → 全折り畳み
+  details.forEach(d=>{
+    const nn = d.getAttribute('data-detail') || '';
+    d.style.display = anyClosed ? 'block' : 'none';
+    if(anyClosed) g_ownedExpanded.add(nn); else g_ownedExpanded.delete(nn);
+  });
+  // バッジ矢印更新
+  listEl.querySelectorAll('.owned-item-head').forEach(head=>{
+    const nn = head.getAttribute('data-toggle') || '';
+    const badge = head.querySelector('.owned-badges');
+    const detail = listEl.querySelector(`.owned-detail[data-detail="${cssEscape(nn)}"]`);
+    if(badge && detail){
+      const total = detail.querySelectorAll('.owned-check').length;
+      const checked = detail.querySelectorAll('.owned-check:checked').length;
+      badge.textContent = `保有 ${checked}/${total} ` + (g_ownedExpanded.has(nn) ? '▴' : '▾');
+    }
+  });
+});
+document.getElementById('btnOwnedClearStorage').addEventListener('click', ()=>{
+  g_ownedVar = new Set();
+  try{ localStorage.removeItem(LS_KEY_OWNED_VAR); }catch(e){}
+  if(g_ownedFilterOn) refreshTable();
+  renderOwnedListFromOut(g_masterOut || g_lastOut || []);
+});
+
+let recomputeTimer = null;
+function scheduleRecompute(){
+  if(!g_groupsByNorm) return;
+  if(recomputeTimer) clearTimeout(recomputeTimer);
+  recomputeTimer = setTimeout(()=>{
+    try{
+      setStatus('計算中...');
+      g_lastOut = compute6Plus();
+      refreshTable();
+    }catch(e){
+      console.error(e);
+      setStatus('エラー: ' + (e && e.message ? e.message : String(e)));
+    }
+  }, 180);
+}
+
+
+function bindRecomputeInputs(){
+  // 判定条件（右表のみリアルタイム再計算）
+  const ids = ['chkUniqueContribution','chkSize3','chkSize4','chkUseAncestor'];
+  ids.forEach(id=>{
+    const el = document.getElementById(id);
+    if(el) el.addEventListener('change', scheduleRecompute);
+  });
+
+  document.querySelectorAll('input[name="thresh"]').forEach(r=>{
+    r.addEventListener('change', scheduleRecompute);
+  });
+}
+
+function applyNearMissForce(on){
+  // （廃止）旧チェック群UIの強制ロジック
+}
+
+['chkUniqueContribution','chkSize3','chkSize4','chkUseAncestor'].forEach(id=>{
+  document.getElementById(id).addEventListener('change', scheduleRecompute);
+});
+document.querySelectorAll('input[name="thresh"]').forEach(r=>{
+  r.addEventListener('change', scheduleRecompute);
+});
+
+async function boot(){
+  loadOwnedFromStorage();
+
+  // ダークモード初期化
+  const darkOn = loadDarkMode();
+  applyDarkMode(darkOn);
+  const darkCb = document.getElementById('chkDarkMode');
+  if(darkCb){
+    darkCb.addEventListener('change', ()=>{ applyDarkMode(darkCb.checked); saveDarkMode(darkCb.checked); });
+  }
+
+  // requested: default OFF (ignore stored toggle)
+  g_ownedFilterOn = false;
+  saveOwnedFilterToStorage();
+  updateOwnedFilterButton();
+  g_nearMissOn = false;
+  g_lastNormalHorseSet = null;
+  g_lastNormalOut = null;
+  updateNearMissButton();
+
+  setWarn('');
+  setStatus('mydata.csv を読み込み中...');
+  try{
+    const mydataText = await fetchText('./mydata.csv');
+    const prep = prepareMydata(mydataText);
+    g_idx = prep.idx;
+    g_groupsByNorm = prep.groups;
+    g_variationsByNorm = prep.variationsByNorm;
+    g_ancestorTypesByNorm = prep.ancTypes;
+
+    setStatus(`読み込み完了\nmydata行数: ${prep.rowsCount}\n正規化馬名数: ${g_groupsByNorm.size}\n祖先証跡数（祖名）: ${g_ancestorTypesByNorm.size}\n計算中...`);
+
+    g_lastOut = compute6Plus();
+    if(!g_masterOut) g_masterOut = g_lastOut.slice();
+    renderOwnedListFromOut(g_masterOut);
+    refreshTable();
+
+  }catch(e){
+    console.error(e);
+    setStatus('読み込みエラー: ' + (e && e.message ? e.message : String(e)));
+    setWarn('mydata.csv の自動読み込みに失敗しました。ローカルサーバ or GitHub Pages 上で実行しているか確認してください。');
+    renderOwnedListFromOut([]);
+    buildTable([]);
+  }
+}
+
+boot();
+</script>
+</body>
+</html>
