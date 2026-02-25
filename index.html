@@ -246,62 +246,118 @@
       /* Keep DataTables logic but hide the heavy table UI on mobile */
       #dataTable_wrapper { display:none !important; }
 
+      
       .mobile-sortbar{
         width:100%;
         box-sizing:border-box;
-        padding:6px 8px;
-        border:1px solid #ddd;
-        border-radius:10px;
+        padding:6px 6px;
+        border:2px solid #1aa3c6;
+        border-radius:0;
         background:#fff;
-        font-size:10px;              /* 小さめ */
-        line-height:1.2;
         white-space:nowrap;          /* 折り返し禁止 */
         overflow:hidden;             /* 横スクロール禁止（はみ出しは隠す） */
-        display:flex;
-        align-items:center;
-        gap:0;
+        display:grid;
+        grid-template-columns: 1.6fr repeat(12, 1fr);
+        gap:2px;
+        align-items:stretch;
       }
-      .mobile-sortbar .sort-label{ font-weight:700; margin-right:2px; flex:0 0 auto; }
-      .mobile-sortbar .sep{ opacity:0.8; padding:0 1px; flex:0 0 auto; }
       .mobile-sortbar .sortbtn{
-        border:0;
-        background:transparent;
-        padding:0 1px;
+        border:2px solid #1aa3c6;
+        border-radius:0;
+        padding:6px 0;
         margin:0;
-        font:inherit;
-        color:#000;
+        font-weight:800;
+        font-size:12px;
+        line-height:1;
         cursor:pointer;
-        flex:0 1 auto;
         min-width:0;
+        overflow:hidden;
+        text-overflow:clip;
+        white-space:nowrap;
       }
-      .mobile-sortbar .sortbtn.active{ text-decoration:underline; font-weight:700; }
+      .mobile-sortbar .sortbtn.sort-horse{
+        background:#000;
+        color:#fff;
+      }
+      /* factor-badge は既存の色を流用。角だけ潰す */
+      .mobile-sortbar .sortbtn.factor-badge{ border-radius:0 !important; padding:6px 0; }
+      .mobile-sortbar .sortbtn.active{ outline:3px solid #000; outline-offset:-3px; }
 
+      
       #mobileList{ margin-top:8px; }
-      .mcard{
-        border:1px solid #ddd;
-        border-radius:10px;
-        padding:8px;
+
+      /* グループ（馬名単位） */
+      .mgroup{
+        border:2px solid #1aa3c6;
+        border-radius:0;
+        background:#000;
         margin:0 0 10px;
-        background:#fff;
       }
-      .mhorse{ font-weight:700; margin:0 0 6px; }
-      .mfactors{ font-size:11px; line-height:1.25; margin:0 0 8px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+      .mgroupHeader{
+        padding:10px 10px;
+        font-weight:900;
+        font-size:20px;
+        color:#fff;
+        cursor:pointer;
+        user-select:none;
+        border-bottom:2px solid #1aa3c6;
+      }
+      .mgroupHeader.collapsed{ opacity:0.8; }
+      .mgroupBody{ }
+
+      /* 候補（行） */
+      .mcand{
+        padding:10px 10px 12px;
+        border-bottom:2px solid #1aa3c6;
+      }
+      .mcand:last-child{ border-bottom:0; }
+
+      .mfactors{
+        font-size:14px;
+        font-weight:800;
+        color:#fff;
+        line-height:1.25;
+        white-space:nowrap;          /* 折り返し無し */
+        overflow:hidden;
+        text-overflow:clip;
+        margin:0 0 10px;
+      }
+
       .mpicks{
         display:grid;
-        grid-template-columns: 1fr 1fr 1fr 1fr;   /* 4分割 */
-        gap:6px;
-        font-size:11px;
-        line-height:1.25;
+        grid-template-columns: 1fr 1fr 1fr 1fr; /* 4分割 */
+        gap:8px;
       }
       .mpick{
-        border:1px solid #eee;
-        border-radius:8px;
-        padding:6px 6px;
-        min-height:28px;
+        border:2px solid #1aa3c6;
+        border-radius:0;
+        padding:8px 6px;
+        min-height:56px;
+        background:#000;
+        color:#fff;
+        overflow:hidden;
+      }
+      .mpickmeta{
+        font-size:12px;
+        font-weight:900;
+        line-height:1.1;
+        white-space:nowrap;
         overflow:hidden;
         text-overflow:ellipsis;
-        white-space:nowrap;          /* 折り返し無し（まずは） */
+        margin:0 0 6px;
       }
+      .mpickfactors{
+        display:flex;
+        flex-wrap:wrap;
+        gap:4px;
+      }
+      .mpickfactors .factor-badge{
+        border-radius:0 !important;   /* 角丸禁止 */
+        padding:1px 5px;
+        font-size:12px;
+        font-weight:900;
+      }
+
     }
 </style>
 </head>
@@ -383,20 +439,19 @@
         <!-- Mobile view (only visible on small screens) -->
         <div id="mobileSortBar" class="mobile-only">
           <div class="mobile-sortbar" aria-label="スマホ用ソートバー">
-            
-            <button type="button" class="sortbtn" data-col="馬名">馬名</button><span class="sep">｜</span>
-            <button type="button" class="sortbtn" data-col="短">短</button><span class="sep">｜</span>
-            <button type="button" class="sortbtn" data-col="速">速</button><span class="sep">｜</span>
-            <button type="button" class="sortbtn" data-col="底">底</button><span class="sep">｜</span>
-            <button type="button" class="sortbtn" data-col="長">長</button><span class="sep">｜</span>
-            <button type="button" class="sortbtn" data-col="適">適</button><span class="sep">｜</span>
-            <button type="button" class="sortbtn" data-col="丈">丈</button><span class="sep">｜</span>
-            <button type="button" class="sortbtn" data-col="早">早</button><span class="sep">｜</span>
-            <button type="button" class="sortbtn" data-col="晩">晩</button><span class="sep">｜</span>
-            <button type="button" class="sortbtn" data-col="堅">堅</button><span class="sep">｜</span>
-            <button type="button" class="sortbtn" data-col="難">難</button><span class="sep">｜</span>
-            <button type="button" class="sortbtn" data-col="走">走</button><span class="sep">｜</span>
-            <button type="button" class="sortbtn" data-col="中">中</button>
+            <button type="button" class="sortbtn sort-horse" data-col="馬名">馬名</button>
+            <button type="button" class="sortbtn factor-badge factor-短" data-col="短">短</button>
+            <button type="button" class="sortbtn factor-badge factor-速" data-col="速">速</button>
+            <button type="button" class="sortbtn factor-badge factor-底" data-col="底">底</button>
+            <button type="button" class="sortbtn factor-badge factor-長" data-col="長">長</button>
+            <button type="button" class="sortbtn factor-badge factor-適" data-col="適">適</button>
+            <button type="button" class="sortbtn factor-badge factor-丈" data-col="丈">丈</button>
+            <button type="button" class="sortbtn factor-badge factor-早" data-col="早">早</button>
+            <button type="button" class="sortbtn factor-badge factor-晩" data-col="晩">晩</button>
+            <button type="button" class="sortbtn factor-badge factor-堅" data-col="堅">堅</button>
+            <button type="button" class="sortbtn factor-badge factor-難" data-col="難">難</button>
+            <button type="button" class="sortbtn factor-badge factor-走" data-col="走">走</button>
+            <button type="button" class="sortbtn factor-badge factor-中" data-col="中">中</button>
           </div>
         </div>
         <div id="mobileList" class="mobile-only" aria-label="スマホ用結果リスト"></div>
@@ -923,19 +978,61 @@ function buildTable(data){
 
 
   // ===== Mobile card renderer + sort bar (only <=900px) =====
-  function stripHorseFromPick(pickStr, horseName){
-    let s = (pickStr ?? '').toString();
-    const n = (horseName ?? '').toString();
-    if(!s) return '';
-    // 先頭に馬名がある場合だけ除去（例: "ヴェンチア-央短-(...)" → "-央短-(...)"）
-    if(n && s.startsWith(n)){
-      s = s.slice(n.length);
-      s = s.replace(/^[-\s　]+/, ''); // 先頭の区切りだけ落とす
-    }
-    return s;
+  
+  function escapeHtml(str){
+    return (str ?? '').toString()
+      .replace(/&/g,'&amp;')
+      .replace(/</g,'&lt;')
+      .replace(/>/g,'&gt;')
+      .replace(/"/g,'&quot;')
+      .replace(/'/g,'&#39;');
   }
 
-  function renderMobileCards(cols){
+  // スマホ表示用：選択1-4を「-XX-や年号」(改行)「因子（丸括弧なし、色付き）」へ整形
+  function formatPickHTML(pickStr, horseName){
+    let s = (pickStr ?? '').toString().trim();
+    const horse = (horseName ?? '').toString();
+    if(!s) return '';
+
+    const isAnc = s.startsWith('[祖]');
+    let meta = '';
+
+    if(isAnc){
+      // [祖]馬名... → [祖] のみ
+      s = s.replace(/^\[祖\]/,'');
+      if(horse && s.startsWith(horse)) s = s.slice(horse.length);
+      meta = '[祖]';
+    }else{
+      // 先頭に馬名がある場合だけ除去（例: "ヴェンチア-央短-(...)" → "-央短-(...)"）
+      if(horse && s.startsWith(horse)){
+        s = s.slice(horse.length);
+        s = s.replace(/^[\s　]+/, ''); // 先頭空白だけ落とす（-XX- は残す）
+      }
+      meta = s;
+    }
+
+    // 因子は ( ... ) の中を優先
+    let factors = '';
+    const m = s.match(/\(([^\)]+)\)/);
+    if(m && m[1]) factors = m[1];
+
+    // meta は ( の前だけ
+    meta = meta.replace(/\(.*/, '').trim();
+
+    // 因子：丸括弧なし、因子漢字のみ
+    factors = (factors || '').replace(/[\s　]/g,'');
+    factors = factors.replace(/[^短速底長適丈早晩堅難走中]/g,'');
+
+    let fhtml = '';
+    for(const ch of factors.split('')){
+      fhtml += `<span class="factor-badge factor-${ch}">${ch}</span>`;
+    }
+
+    return `<div class="mpickmeta">${escapeHtml(meta)}</div><div class="mpickfactors">${fhtml}</div>`;
+  }
+
+  
+function renderMobileCards(cols){
     const mob = window.matchMedia && window.matchMedia('(max-width: 900px)').matches;
     const wrap = document.getElementById('mobileList');
     if(!wrap) return;
@@ -943,35 +1040,73 @@ function buildTable(data){
     if(!window.g_dt) return;
 
     const idxName = cols.indexOf('馬名');
-    const factorCols = ['短','速','底','長','適','丈','早','晩','堅','難','走','中'].map(k=>({k, i: cols.indexOf(k)})).filter(o=>o.i>=0);
-    const pickCols = ['選択1','選択2','選択3','選択4'].map(k=>cols.indexOf(k)).filter(i=>i>=0);
+    const factorCols = ['短','速','底','長','適','丈','早','晩','堅','難','走','中']
+      .map(k=>({k, i: cols.indexOf(k)}))
+      .filter(o=>o.i>=0);
+    const pickCols = ['選択1','選択2','選択3','選択4']
+      .map(k=>cols.indexOf(k))
+      .filter(i=>i>=0);
 
     const data = window.g_dt.rows({search:'applied', order:'applied'}).data().toArray();
-    let prevName = '';
-    let html = '';
 
+    // 馬名でグループ化（同一馬の候補は馬名を繰り返さない）
+    const groups = [];
+    let cur = null;
     for(const row of data){
       const horse = (row[idxName] ?? '').toString();
-      const showHorse = horse && horse !== prevName;
-      prevName = horse || prevName;
-
-      const factorLine = factorCols.map(o => `${o.k}${(row[o.i] ?? '').toString()}`).join(' ');
-      const picks = pickCols.map(i => stripHorseFromPick(row[i], horse));
-
-      html += `<div class="mcard">` +
-              (showHorse ? `<div class="mhorse">${horse}</div>` : `<div class="mhorse" style="visibility:hidden;">_</div>`) +
-              `<div class="mfactors">${factorLine}</div>` +
-              `<div class="mpicks">` +
-              `<div class="mpick">${picks[0] ?? ''}</div>` +
-              `<div class="mpick">${picks[1] ?? ''}</div>` +
-              `<div class="mpick">${picks[2] ?? ''}</div>` +
-              `<div class="mpick">${picks[3] ?? ''}</div>` +
-              `</div></div>`;
+      if(!horse) continue;
+      if(!cur || horse !== cur.horse){
+        cur = { horse, rows: [] };
+        groups.push(cur);
+      }
+      cur.rows.push(row);
     }
+
+    let html = '';
+    for(const g of groups){
+      html += `<div class="mgroup">` +
+              `<div class="mgroupHeader" role="button" tabindex="0">${escapeHtml(g.horse)}</div>` +
+              `<div class="mgroupBody">`;
+
+      for(const row of g.rows){
+        const factorLine = factorCols.map(o => `${o.k}${(row[o.i] ?? '').toString()}`).join(' ');
+        const picks = pickCols.map(i => formatPickHTML(row[i], g.horse));
+
+        html += `<div class="mcand">` +
+                `<div class="mfactors">${escapeHtml(factorLine)}</div>` +
+                `<div class="mpicks">` +
+                `<div class="mpick">${picks[0] ?? ''}</div>` +
+                `<div class="mpick">${picks[1] ?? ''}</div>` +
+                `<div class="mpick">${picks[2] ?? ''}</div>` +
+                `<div class="mpick">${picks[3] ?? ''}</div>` +
+                `</div></div>`;
+      }
+
+      html += `</div></div>`;
+    }
+
     wrap.innerHTML = html;
+
+    // 馬名タップで折りたたみ／展開
+    wrap.querySelectorAll('.mgroupHeader').forEach(h=>{
+      const toggle = ()=>{
+        const body = h.nextElementSibling;
+        if(!body) return;
+        const willOpen = (body.style.display === 'none');
+        body.style.display = willOpen ? '' : 'none';
+        h.classList.toggle('collapsed', !willOpen);
+      };
+      h.addEventListener('click', toggle);
+      h.addEventListener('keydown', (e)=>{
+        if(e.key === 'Enter' || e.key === ' '){
+          e.preventDefault();
+          toggle();
+        }
+      });
+    });
   }
 
-  function setupMobileSortBar(cols){
+function setupMobileSortBar(cols){
     const bar = document.getElementById('mobileSortBar');
     if(!bar) return;
 
