@@ -238,7 +238,72 @@
     #dataTable th, #dataTable td { border-bottom: 1px solid #ddd !important; }
     body.dark #dataTable th, body.dark #dataTable td { border-bottom-color: #2a2f3a !important; }
 
-  </style>
+  
+    /* ===== Mobile-only (table -> card) ===== */
+    .mobile-only { display:none; }
+    @media (max-width: 900px){
+      .mobile-only { display:block; }
+      /* Keep DataTables logic but hide the heavy table UI on mobile */
+      #dataTable_wrapper { display:none !important; }
+
+      .mobile-sortbar{
+        width:100%;
+        box-sizing:border-box;
+        padding:6px 8px;
+        border:1px solid #ddd;
+        border-radius:10px;
+        background:#fff;
+        font-size:10px;              /* 小さめ */
+        line-height:1.2;
+        white-space:nowrap;          /* 折り返し禁止 */
+        overflow:hidden;             /* 横スクロール禁止（はみ出しは隠す） */
+        display:flex;
+        align-items:center;
+        gap:0;
+      }
+      .mobile-sortbar .sort-label{ font-weight:700; margin-right:2px; flex:0 0 auto; }
+      .mobile-sortbar .sep{ opacity:0.8; padding:0 1px; flex:0 0 auto; }
+      .mobile-sortbar .sortbtn{
+        border:0;
+        background:transparent;
+        padding:0 1px;
+        margin:0;
+        font:inherit;
+        color:#000;
+        cursor:pointer;
+        flex:0 1 auto;
+        min-width:0;
+      }
+      .mobile-sortbar .sortbtn.active{ text-decoration:underline; font-weight:700; }
+
+      #mobileList{ margin-top:8px; }
+      .mcard{
+        border:1px solid #ddd;
+        border-radius:10px;
+        padding:8px;
+        margin:0 0 10px;
+        background:#fff;
+      }
+      .mhorse{ font-weight:700; margin:0 0 6px; }
+      .mfactors{ font-size:11px; line-height:1.25; margin:0 0 8px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+      .mpicks{
+        display:grid;
+        grid-template-columns: 1fr 1fr 1fr 1fr;   /* 4分割 */
+        gap:6px;
+        font-size:11px;
+        line-height:1.25;
+      }
+      .mpick{
+        border:1px solid #eee;
+        border-radius:8px;
+        padding:6px 6px;
+        min-height:28px;
+        overflow:hidden;
+        text-overflow:ellipsis;
+        white-space:nowrap;          /* 折り返し無し（まずは） */
+      }
+    }
+</style>
 </head>
 <body>
   <div class="topbar">
@@ -314,6 +379,28 @@
 
     <div class="right">
       <div class="dt-wrap">
+        
+        <!-- Mobile view (only visible on small screens) -->
+        <div id="mobileSortBar" class="mobile-only">
+          <div class="mobile-sortbar" aria-label="スマホ用ソートバー">
+            <span class="sort-label">ソート順｜</span>
+            <button type="button" class="sortbtn" data-col="馬名">馬名</button><span class="sep">｜</span>
+            <button type="button" class="sortbtn" data-col="短">短</button><span class="sep">｜</span>
+            <button type="button" class="sortbtn" data-col="速">速</button><span class="sep">｜</span>
+            <button type="button" class="sortbtn" data-col="底">底</button><span class="sep">｜</span>
+            <button type="button" class="sortbtn" data-col="長">長</button><span class="sep">｜</span>
+            <button type="button" class="sortbtn" data-col="適">適</button><span class="sep">｜</span>
+            <button type="button" class="sortbtn" data-col="丈">丈</button><span class="sep">｜</span>
+            <button type="button" class="sortbtn" data-col="早">早</button><span class="sep">｜</span>
+            <button type="button" class="sortbtn" data-col="晩">晩</button><span class="sep">｜</span>
+            <button type="button" class="sortbtn" data-col="堅">堅</button><span class="sep">｜</span>
+            <button type="button" class="sortbtn" data-col="難">難</button><span class="sep">｜</span>
+            <button type="button" class="sortbtn" data-col="走">走</button><span class="sep">｜</span>
+            <button type="button" class="sortbtn" data-col="中">中</button>
+          </div>
+        </div>
+        <div id="mobileList" class="mobile-only" aria-label="スマホ用結果リスト"></div>
+
         <table id="dataTable" class="display">
           <thead></thead>
           <tbody></tbody>
@@ -833,6 +920,120 @@ function buildTable(data){
       { targets: [cols.indexOf("選択1"), cols.indexOf("選択2"), cols.indexOf("選択3"), cols.indexOf("選択4")], className: 'pick-col' }
     ]
   });
+
+
+  // ===== Mobile card renderer + sort bar (only <=900px) =====
+  function stripHorseFromPick(pickStr, horseName){
+    let s = (pickStr ?? '').toString();
+    const n = (horseName ?? '').toString();
+    if(!s) return '';
+    // 先頭に馬名がある場合だけ除去（例: "ヴェンチア-央短-(...)" → "-央短-(...)"）
+    if(n && s.startsWith(n)){
+      s = s.slice(n.length);
+      s = s.replace(/^[-\s　]+/, ''); // 先頭の区切りだけ落とす
+    }
+    return s;
+  }
+
+  function renderMobileCards(cols){
+    const mob = window.matchMedia && window.matchMedia('(max-width: 900px)').matches;
+    const wrap = document.getElementById('mobileList');
+    if(!wrap) return;
+    if(!mob){ wrap.innerHTML = ''; return; }
+    if(!window.g_dt) return;
+
+    const idxName = cols.indexOf('馬名');
+    const factorCols = ['短','速','底','長','適','丈','早','晩','堅','難','走','中'].map(k=>({k, i: cols.indexOf(k)})).filter(o=>o.i>=0);
+    const pickCols = ['選択1','選択2','選択3','選択4'].map(k=>cols.indexOf(k)).filter(i=>i>=0);
+
+    const data = window.g_dt.rows({search:'applied', order:'applied'}).data().toArray();
+    let prevName = '';
+    let html = '';
+
+    for(const row of data){
+      const horse = (row[idxName] ?? '').toString();
+      const showHorse = horse && horse !== prevName;
+      prevName = horse || prevName;
+
+      const factorLine = factorCols.map(o => `${o.k}${(row[o.i] ?? '').toString()}`).join(' ');
+      const picks = pickCols.map(i => stripHorseFromPick(row[i], horse));
+
+      html += `<div class="mcard">` +
+              (showHorse ? `<div class="mhorse">${horse}</div>` : `<div class="mhorse" style="visibility:hidden;">_</div>`) +
+              `<div class="mfactors">${factorLine}</div>` +
+              `<div class="mpicks">` +
+              `<div class="mpick">${picks[0] ?? ''}</div>` +
+              `<div class="mpick">${picks[1] ?? ''}</div>` +
+              `<div class="mpick">${picks[2] ?? ''}</div>` +
+              `<div class="mpick">${picks[3] ?? ''}</div>` +
+              `</div></div>`;
+    }
+    wrap.innerHTML = html;
+  }
+
+  function setupMobileSortBar(cols){
+    const bar = document.getElementById('mobileSortBar');
+    if(!bar) return;
+
+    // colName -> dt column index
+    const map = {};
+    map['馬名'] = 0; // __sort
+    ['短','速','底','長','適','丈','早','晩','堅','難','走','中'].forEach(k=>{
+      const i = cols.indexOf(k);
+      if(i >= 0) map[k] = i;
+    });
+
+    function refreshIndicator(){
+      const ord = window.g_dt ? window.g_dt.order() : [];
+      const active = (ord && ord[0]) ? ord[0][0] : 0;
+      const dir = (ord && ord[0]) ? ord[0][1] : 'asc';
+
+      document.querySelectorAll('#mobileSortBar .sortbtn').forEach(btn=>{
+        const k = btn.getAttribute('data-col');
+        const colIdx = map[k];
+        // reset text to base
+        btn.textContent = k;
+        btn.classList.remove('active');
+        if(colIdx === active){
+          btn.classList.add('active');
+          btn.textContent = k + (dir === 'asc' ? '▲' : '▼');
+        }
+      });
+    }
+
+    // click
+    document.querySelectorAll('#mobileSortBar .sortbtn').forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        if(!window.g_dt) return;
+        const k = btn.getAttribute('data-col');
+        const colIdx = map[k];
+        if(colIdx == null) return;
+
+        const cur = window.g_dt.order();
+        let nextDir = 'asc';
+        if(cur && cur[0] && cur[0][0] === colIdx){
+          nextDir = (cur[0][1] === 'asc') ? 'desc' : 'asc';
+        }
+        window.g_dt.order([[colIdx, nextDir]]).draw();
+        refreshIndicator();
+      });
+    });
+
+    // initial indicator
+    refreshIndicator();
+
+    // keep indicator in sync
+    if(window.g_dt){
+      window.g_dt.on('order.dt', refreshIndicator);
+    }
+  }
+
+  // Hook DataTables draw to mobile renderer
+  if(window.g_dt){
+    window.g_dt.on('draw.dt', function(){ renderMobileCards(cols); });
+    setupMobileSortBar(cols);
+    renderMobileCards(cols);
+  }
 
   // レイアウト崩れ対策: 初期化直後に幅調整（特に再計算時）
   setTimeout(()=>{ try{ g_dt.columns.adjust().draw(false); }catch(e){} }, 0);
