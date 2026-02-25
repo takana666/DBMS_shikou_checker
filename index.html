@@ -243,6 +243,13 @@
     .mobile-only { display:none; }
     @media (max-width: 900px){
       .mobile-only { display:block; }
+      /* v4: prevent horizontal scroll and tighten gutters */
+      html, body { overflow-x: hidden !important; }
+      body { touch-action: pan-y; }
+      .container{ padding-left:6px !important; padding-right:6px !important; }
+      .right{ padding-left:0 !important; padding-right:0 !important; margin-left:0 !important; margin-right:0 !important; }
+      .dt-wrap{ padding-left:0 !important; padding-right:0 !important; border-radius:0 !important; }
+      #mobileSortBar, #mobileList { overflow-x:hidden; }
       /* Keep DataTables logic but hide the heavy table UI on mobile */
       #dataTable_wrapper { display:none !important; }
 
@@ -261,6 +268,9 @@
         gap:2px;
         align-items:stretch;
       }
+      .mobile-toolbar{ width:100%; box-sizing:border-box; margin-bottom:6px; display:flex; justify-content:flex-start; }
+      .mobile-toolbar .mobbtn{ border:2px solid #1aa3c6; border-radius:0; padding:6px 10px; font-weight:800; background:#fff; color:#000; }
+
       .mobile-sortbar .sortbtn{
         border:2px solid #1aa3c6;
         border-radius:0;
@@ -276,8 +286,8 @@
         white-space:nowrap;
       }
       .mobile-sortbar .sortbtn.sort-horse{
-        background:#000;
-        color:#fff;
+        background:#fff;
+        color:#000;
       }
       /* factor-badge は既存の色を流用。角だけ潰す */
       .mobile-sortbar .sortbtn.factor-badge{ border-radius:0 !important; padding:6px 0; }
@@ -290,14 +300,16 @@
       .mgroup{
         border:2px solid #1aa3c6;
         border-radius:0;
-        background:#000;
-        margin:0 0 10px;
+        background:#fff;
+        margin:0 0 6px;
       }
       .mgroupHeader{
-        padding:10px 10px;
+        padding:8px 8px;
         font-weight:900;
         font-size:20px;
-        color:#fff;
+        background:#fff;
+        color:#000;
+        color:#000 /* was */ #fff;
         cursor:pointer;
         user-select:none;
         border-bottom:2px solid #1aa3c6;
@@ -320,7 +332,7 @@
         white-space:nowrap;          /* 折り返し無し */
         overflow:hidden;
         text-overflow:clip;
-        margin:0 0 10px;
+        margin:0 0 6px;
       }
 
       .mpicks{
@@ -331,10 +343,10 @@
       .mpick{
         border:2px solid #1aa3c6;
         border-radius:0;
-        padding:8px 6px;
+        padding:6px 4px;
         min-height:56px;
-        background:#000;
-        color:#fff;
+        background:#fff;
+        color:#000;
         overflow:hidden;
       }
       .mpickmeta{
@@ -438,6 +450,7 @@
         
         <!-- Mobile view (only visible on small screens) -->
         <div id="mobileSortBar" class="mobile-only">
+          <div class="mobile-toolbar"><button type="button" id="mobToggleAll" class="mobbtn">全部折り畳み</button></div>
           <div class="mobile-sortbar" aria-label="スマホ用ソートバー">
             <button type="button" class="sortbtn sort-horse" data-col="馬名">馬名</button>
             <button type="button" class="sortbtn factor-badge factor-短" data-col="短">短</button>
@@ -1104,6 +1117,30 @@ function renderMobileCards(cols){
         }
       });
     });
+
+    // 全部折り畳み/展開
+    const btn = document.getElementById('mobToggleAll');
+    if(btn){
+      const setLabel = ()=>{
+        const anyOpen = Array.from(wrap.querySelectorAll('.mgroupBody')).some(b=>b.style.display !== 'none');
+        btn.textContent = anyOpen ? '全部折り畳み' : '全部展開';
+      };
+      setLabel();
+      btn.onclick = ()=>{
+        const anyOpen = Array.from(wrap.querySelectorAll('.mgroupBody')).some(b=>b.style.display !== 'none');
+        wrap.querySelectorAll('.mgroupBody').forEach(b=>{ b.style.display = anyOpen ? 'none' : ''; });
+        wrap.querySelectorAll('.mgroupHeader').forEach(h=>{ h.classList.toggle('collapsed', anyOpen); });
+        setLabel();
+        // 右表の幅再計算（保険）
+        try{ window.g_dt && window.g_dt.columns && window.g_dt.columns.adjust && window.g_dt.columns.adjust(); }catch(e){}
+      };
+      // 個別トグル後もラベル更新
+      wrap.addEventListener('click', (e)=>{
+        if(e.target && e.target.classList && e.target.classList.contains('mgroupHeader')){
+          setTimeout(setLabel, 0);
+        }
+      });
+    }
   }
 
 function setupMobileSortBar(cols){
