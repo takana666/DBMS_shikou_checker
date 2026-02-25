@@ -383,7 +383,7 @@
         <!-- Mobile view (only visible on small screens) -->
         <div id="mobileSortBar" class="mobile-only">
           <div class="mobile-sortbar" aria-label="スマホ用ソートバー">
-            <span class="sort-label">ソート順｜</span>
+            
             <button type="button" class="sortbtn" data-col="馬名">馬名</button><span class="sep">｜</span>
             <button type="button" class="sortbtn" data-col="短">短</button><span class="sep">｜</span>
             <button type="button" class="sortbtn" data-col="速">速</button><span class="sep">｜</span>
@@ -1029,6 +1029,7 @@ function buildTable(data){
   }
 
   // Hook DataTables draw to mobile renderer
+  window.g_dt = g_dt;
   if(window.g_dt){
     window.g_dt.on('draw.dt', function(){ renderMobileCards(cols); });
     setupMobileSortBar(cols);
