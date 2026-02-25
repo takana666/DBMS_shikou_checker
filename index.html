@@ -376,6 +376,22 @@
       }
 
     }
+
+    .near-divider{ border:0; border-top:1px solid #ddd; margin:10px 0 8px; }
+    .near-note{ font-size:11px; color:#666; margin-top:4px; }
+    body.dark .near-divider{ border-top-color:#2a2f3a; }
+    body.dark .near-note{ color:#b8bfcc; }
+
+
+    body.dark .mobile-sortbar{ background:#151922 !important; border-color:#2a2f3a !important; }
+    body.dark .mobile-toolbar .mobbtn{ background:#151922 !important; color:#e6e6e6 !important; border-color:#2a2f3a !important; }
+    body.dark .mobile-sortbar .sortbtn{ color:#e6e6e6 !important; }
+    body.dark .mobile-list{ background:transparent !important; }
+    body.dark .mcard{ background:#151922 !important; border-color:#2a2f3a !important; }
+    body.dark .mcard-name{ background:#151922 !important; color:#e6e6e6 !important; border-bottom-color:#2a2f3a !important; }
+    body.dark .mcard-counts{ color:#e6e6e6 !important; background:#151922 !important; }
+    body.dark .mchoice{ background:#151922 !important; border-color:#2a2f3a !important; }
+
 </style>
 </head>
 <body>
@@ -393,8 +409,7 @@
       <div class="cond-box">
           <div class="box-title">判定条件</div>
 <div class="row">
-        <label>判定条件</label>
-        <div class="cond">
+                <div class="cond">
           <div><input type="checkbox" id="chkUniqueContribution" checked> 固有貢献（各要素が“他に無い種類”を1つ以上持つ）</div>
 
           <div style="margin-top:6px;">
@@ -405,20 +420,21 @@
 
           <div style="margin-top:6px;">
             <span>成立条件：</span>
-            <label style="display:inline; font-weight:normal;"><input type="radio" name="thresh" value="5"> 5種</label>
-            <label style="display:inline; font-weight:normal; margin-left:10px;"><input type="radio" name="thresh" value="6" checked> 6種以上</label>
+<label style="display:inline; font-weight:normal; margin-left:10px;"><input type="radio" name="thresh" value="6" checked> 6種以上</label>
             <label style="display:inline; font-weight:normal; margin-left:10px;"><input type="radio" name="thresh" value="7"> 7種以上</label>
             <label style="display:inline; font-weight:normal; margin-left:10px;"><input type="radio" name="thresh" value="8"> 8種以上</label>
           </div>
 
           <div style="margin-top:6px;">
             <span>祖先因子：</span>
-            <label style="display:inline; font-weight:normal;"><input type="checkbox" id="chkUseAncestor" checked> 使用する（mydata全体から証跡集計）</label>
+            <label style="display:inline; font-weight:normal;"><input type="checkbox" id="chkUseAncestor" checked> 使用する</label>
           </div>
         
+          <hr class="near-divider">
           <div style="margin-top:6px;">
             <span>あと１因子で至高チェック：</span>
             <button id="btnNearMiss" type="button" class="smallbtn togglebtn-off">あと１因子: OFF</button>
+            <div class="near-note">※新規種が出た際に至高になるか判断用</div>
           </div>
 </div>
       </div>
@@ -427,18 +443,18 @@
 <div class="row">
         <div class="owned-box">
           <div class="owned-header">
-            <div class="owned-title">保有馬管理（バリエーション単位）</div>
+            <div class="owned-title">保有馬管理</div>
             <div class="owned-controls small">
-              <button id="btnFilterOwned" type="button" class="smallbtn togglebtn-off">右表に反映: OFF</button>
+              <button id="btnFilterOwned" type="button" class="smallbtn togglebtn-off">表へ反映: OFF</button>
             </div>
           </div>
 
           <div class="small" style="margin-bottom:6px;">チェックはローカルストレージに保存され、次回も復元されます。</div>
 
           <div class="owned-actions">
-            <button id="btnOwnedAll" type="button" class="smallbtn">表示中を全チェック</button>
-            <button id="btnOwnedNone" type="button" class="smallbtn">表示中を全解除</button>
-            <button id="btnOwnedToggleExpand" type="button" class="smallbtn">展開/折り畳み切替</button>
+            <button id="btnOwnedToggleExpand" type="button" class="smallbtn">展開/折り畳み切り替え</button>
+            <button id="btnOwnedAll" type="button" class="smallbtn">全チェック</button>
+            <button id="btnOwnedNone" type="button" class="smallbtn">全解除</button>
             <button id="btnOwnedClearStorage" type="button" class="smallbtn">保存クリア</button>
           </div>
 
@@ -1318,11 +1334,11 @@ function renderOwnedListFromOut(out){
 function updateOwnedFilterButton(){
   const btn = document.getElementById('btnFilterOwned');
   if(g_ownedFilterOn){
-    btn.textContent = '右表に反映: ON';
+    btn.textContent = '表へ反映: ON';
     btn.classList.remove('togglebtn-off');
     btn.classList.add('togglebtn-on');
   }else{
-    btn.textContent = '右表に反映: OFF';
+    btn.textContent = '表へ反映: OFF';
     btn.classList.remove('togglebtn-on');
     btn.classList.add('togglebtn-off');
   }
