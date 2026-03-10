@@ -827,17 +827,31 @@ function compute6PlusCore(opts){
 
   for(let h=0; h<normNames.length; h++){
     const nn = normNames[h];
-    if((h+1) % 50 === 0){
-      setStatus(`処理中... ${h+1}/${normNames.length}
-（ブラウザ内で計算しています）`);
+
+    let elements = [];
+
+    // 自分の全バリエーションを独立要素として追加
+    const groupRows = g_groupsByNorm.get(nn) || [];
+    for(const r of groupRows){
+      const f = factorsFromRow(r, g_idx);
+      if(f.length === 0) continue;
+
+      const name = (r[g_idx["馬名"]] ?? "").toString();
+      elements.push({
+        label: `${name}(${f.join('')})`,
+        factors: f,
+        source: "self"
+      });
     }
 
-    let elements = buildSelfElements(g_groupsByNorm.get(nn));
-    if(useAncestor) elements = elements.concat(buildAncestorElementForHorse(nn));
+    // 祖先要素を追加
+    if(useAncestor){
+      elements = elements.concat(buildAncestorElementForHorse(nn));
+    }
+
     if(elements.length < minK) continue;
 
     for(const k of trySizes){
-      if(elements.length < k) continue;
       const combs = combinations(elements, k);
 
       for(const comb of combs){
