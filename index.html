@@ -643,7 +643,7 @@ let g_lastNormalOut=null;
 
 
 async function fetchText(url){
-  const res = await fetch(url, { cache: "no-store" });
+  const res = await fetch(url + "?v=" + Date.now(), { cache: "no-store" });
   if(!res.ok) throw new Error(`fetch失敗: ${url} (${res.status})`);
   return await res.text();
 }
