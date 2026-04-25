@@ -407,6 +407,11 @@
     body.dark .pcsortnote{ color:#b8bfcc !important; }
 
 
+
+    /* ===== 追加: 抽出CSV該当馬名（選択1〜4）を青表示 ===== */
+    .selected-csv-horse { color:#0066ff !important; font-weight:800; }
+    body.dark .selected-csv-horse { color:#4da3ff !important; }
+
 </style>
 </head>
 <body>
@@ -565,6 +570,57 @@ function makeKanaSortKey(name){
 }
 const FACTOR_TYPES = ["短","速","底","長","適","丈","早","晩","堅","難","走","中"];
 const FACTOR_SET = new Set(FACTOR_TYPES);
+
+const EXTRACTED_CSV_HORSE_NAMES = new Set(["アイアンリージ-瓏闘-", "アイリッシュリヴァー-燕闘-", "アウザール-闘神-", "アグネスタキオン-獅煌-", "アグネスタキオン-瞬天-", "アグネスデジタル-天煌-", "アグネスデジタル-央天-", "アグネスデジタル-瞬天-", "アメリゴ-覇魂-", "アリダー-央魂-", "アリダー-獅闘-", "アリバイ-燕闘-", "アリバイ-瞬天-", "アルザオ-獅煌-", "アレッジド-覇魂-", "アンダースタンディング-獅闘-", "イクイノックス-獅煌-", "イクイノックス-神速-", "イージーゴア-覇魂-", "エイシンヒカリ-翔獅-", "エイシンフラッシュ-天禊-", "エタン-神速-", "エタン-闘神-", "エピファネイア-天煌-", "エルコンドルパサー-天闘-", "エルコンドルパサー-央燕-", "エルコンドルパサー-覇閃-", "オグリキャップ-天煌-", "オグリキャップ-燕禊-", "オグリキャップ-獅煌-", "オグリキャップ-神速-", "オグリキャップ-翔迅-", "オペラハウス-天煌-", "オペラハウス-燕闘-", "オルフェーヴル-天靭-", "オルフェーヴル-神速-", "オルフェーヴル-翔燕-", "オーギュストロダン-央燕-", "カイフタラ-瓏覇-", "カリフォルニアクローム-天闘-", "ガリレオ-天煌-", "ガリレオ-央天-", "ガルチ-天禊-", "キズナ-覇閃-", "キタサンブラック-天煌-", "キャメロット-煌魂-", "キャロルハウス-天煌-", "キングカメハメハ-天煌-", "キングカメハメハ-瞬天-", "キングカメハメハ-迅闘-", "キングズベスト-天煌-", "キングズベスト-獅闘-", "キングズベスト-瑚闘-", "キングヘイロー-覇閃-", "キングマンボ-央瓏-", "キングマンボ-獅煌-", "キングマンボ-瓏覇-", "キングマンボ-神煌-", "キートゥザミント-瞬天-", "クライムカイザー-翔天-", "クレペロ-瞬天-", "クレペロ-瞬神-", "クレームデラクレーム-覇閃-", "クロフネ-覇閃-", "グラスワンダー-天闘-", "グラスワンダー-獅闘-", "グラスワンダー-瓏覇-", "グリーングラス-瓏闘-", "グロースターク-天煌-", "グロースターク-翔燕-", "コジーン-天闘-", "コントレイル-天煌-", "コントレイル-央燕-", "コントレイル-神速-", "コートマーシャル-瞬天-", "ゴールドシップ-天煌-", "ゴールドシップ-瓏覇-", "ゴールドシップ-神狂-", "ゴールドシップ-覇魂-", "サイテーション-燕禊-", "サイテーション-燕闘-", "サイテーション-神速-", "サイテーション-翔瑚-", "サイレンススズカ-瞬天-", "サイレンススズカ-神速-", "サイレンススズカ-覇閃-", "サイレンススズカ-迅闘-", "サクラショウリ-天闘-", "サクラショウリ-瓏覇-", "サクラバクシンオー-瞬神-", "サクラユタカオー-天煌-", "サッカーボーイ-天煌-", "サッカーボーイ-翔瑚-", "サドラーズウェルズ-燕闘-", "サドラーズウェルズ-獅煌-", "サンデーサイレンス-神煌-", "サンデーサイレンス-神速-", "サンデーサイレンス-翔天-", "サンデーサイレンス-覇閃-", "サーゲイロード-獅煌-", "ザミンストレル-天煌-", "ザミンストレル-天禊-", "シャーペンアップ-瞬神-", "シャーペンアップ-覇閃-", "シャーペンアップ-迅闘-", "シルバーバック-天煌-", "シルヴァーホーク-獅闘-", "シロッコ-天煌-", "シロッコ-燕禊-", "シロッコ-神速-", "シンザン-獅煌-", "シンザン-神速-", "シンザン-闘神-", "シンボリルドルフ-神速-", "シンボリルドルフ-覇閃-", "シーザスターズ-天闘-", "シーザスターズ-獅煌-", "シーフュリュー-瞬天-", "シーフュリュー-覇閃-", "ジャスタウェイ-獅闘-", "ステイゴールド-天煌-", "ステイゴールド-央獅-", "ステイゴールド-瓏覇-", "ストームキャット-瑚狂-", "スペシャルウィーク-央瓏-", "スペシャルウィーク-瓏覇-", "スペシャルウィーク-神煌-", "スペシャルウィーク-神速-", "スペシャルウィーク-覇魂-", "スーパークリーク-燕闘-", "セイウンスカイ-天煌-", "セイウンスカイ-瓏覇-", "セクレタリアト-瑚狂-", "セクレタリアト-神狂-", "セントクレスピン-央瑚-", "セントクレスピン-瑚闘-", "セントクレスピン-神速-", "セントニコラスアビー-天闘-", "セントニコラスアビー-翔天-", "セントパディ-瓏覇-", "ソヴィエトスター-覇魂-", "タイテエム-天煌-", "タイテエム-瓏覇-", "タイトルホルダー-瓏覇-", "タイトルホルダー-神煌-", "タイムレスモーメント-瑚闘-", "タマモクロス-煌魂-", "タマモクロス-神煌-", "ダイワメジャー-覇閃-", "ダノンレジェンド-瑚闘-", "ダマスカス-天闘-", "ダマスカス-央魂-", "ダマスカス-闘神-", "ダンシングブレーヴ-瞬天-", "ダンシングモス-天煌-", "ダンシングモス-瓏覇-", "ダンシングモス-神煌-", "ダンスインザダーク-燕闘-", "ダンスインザダーク-神煌-", "ダンチヒ-瞬天-", "ダンチヒ-翔天-", "ダンチヒ-覇閃-", "ダンテ-瞬天-", "ティズナウ-覇魂-", "テイエムオペラオー-獅煌-", "テスコボーイ-央迅-", "テスコボーイ-瓏覇-", "テスコボーイ-覇閃-", "テスコボーイ-閃煌-", "テューダーミンストレル-瓏覇-", "テューダーミンストレル-神速-", "テューダーメロディ-瑚狂-", "テンポイント-覇魂-", "ディープインパクト-天煌-", "ディープインパクト-煌魂-", "ディープインパクト-獅煌-", "ディープインパクト-翔燕-", "デリングドゥ-天闘-", "トウカイテイオー-央獅-", "トウカイテイオー-獅煌-", "トウカイテイオー-覇魂-", "トウショウボーイ-天禊-", "トウショウボーイ-獅煌-", "トニービン-天煌-", "トニービン-燕闘-", "トニービン-覇煌-", "トムロルフ-燕巧-", "トムロルフ-瑚巧-", "トルカータータッソ-燕闘-", "ドゥラメンテ-天煌-", "ドゥラメンテ-獅煌-", "ドゥラメンテ-神速-", "ドウデュース-翔天-", "ドクターフェイガー-覇閃-", "ドリームジャーニー-央瓏-", "ドリームジャーニー-瞬天-", "ドリームジャーニー-神速-", "ナシュア-獅闘-", "ナスルーラ-神狂-", "ナリタブライアン-天煌-", "ナリタブライアン-燕闘-", "ナリタブライアン-神速-", "ニアークティック-央天-", "ニアークティック-神速-", "ニジンスキー-天煌-", "ニジンスキー-燕闘-", "ニジンスキー-瓏覇-", "ニットエイト-瑚狂-", "ニホンピロウイナー-天禊-", "ニホンピロウイナー-瞬神-", "ヌレイエフ-瞬天-", "ヌレイエフ-覇閃-", "ネアルコ-央燕-", "ネアルコ-燕闘-", "ネアルコ-翔天-", "ネイエフ-燕闘-", "ネイティヴダンサー-獅闘-", "ネオユニヴァース-天煌-", "ネヴァーセイダイ-瓏闘-", "ネヴァービート-燕禊-", "ノーザンダンサー-央燕-", "ノーザンダンサー-闘神-", "ノーザンテースト-瓏闘-", "ノーザンテースト-神速-", "ノーザンテースト-煉禊-", "ノーザンテースト-閃禊-", "ハイセイコー-天煌-", "ハイペリオン-天闘-", "ハイペリオン-瓏覇-", "ハビタット-瞬神-", "ハンターコム-覇閃-", "ハーツクライ-瓏覇-", "バゴ-瓏覇-", "バステッド-燕巧-", "バステッド-燕禊-", "バックパサー-瞬天-", "バリモス-天闘-", "バーイード-瞬天-", "パーシア-央魂-", "パーシア-瓏覇-", "パーシア-神煌-", "パーソロン-天煌-", "パーソロン-獅煌-", "パーソロン-神速-", "ヒズマジェスティ-央瓏-", "ヒズマジェスティ-瓏闘-", "ヒズマジェスティ-神煌-", "ヒンドスタン-天煌-", "ヒンドスタン-央魂-", "ヒンドスタン-煌魂-", "ピーシズオブエイト-瓏覇-", "ファインニードル-覇閃-", "ファンタスティックライト-燕闘-", "フジキセキ-神速-", "フライトライン-天闘-", "フランケル-天闘-", "ブライアンズタイム-天煌-", "ブライアンズタイム-瑚闘-", "ブライアンズタイム-瞬天-", "ブライアンズタイム-神速-", "ブラッシンググルーム-瑚狂-", "ブリガディアジェラード-央燕-", "ブリガディアジェラード-瑚闘-", "ブリガディアジェラード-瞬天-", "ブリガディアジェラード-神速-", "プリンスキロ-燕闘-", "プリンスキロ-翔燕-", "ヘイルトゥリーズン-獅煌-", "ヘイロー-神速-", "ヘクタープロテクター-覇閃-", "ホッコータルマエ-天煌-", "ホーンビーム-神煌-", "ボールドラッド-央獅-", "ボールドラッド-獅闘-", "ボールドルーラー-天闘-", "ボールドルーラー-瓏闘-", "マイリージャン-燕闘-", "マイリージャン-獅禊-", "マグニテュード-天煌-", "マグニテュード-瓏覇-", "マヤノトップガン-翔瓏-", "マルゼンスキー-獅闘-", "マルゼンスキー-瞬神-", "マルゼンスキー-覇閃-", "マンハッタンカフェ-瓏闘-", "マンハッタンカフェ-神煌-", "ミスターシービー-燕闘-", "ミスタープロスペクター-天煌-", "ミスタープロスペクター-瑚闘-", "ミスタープロスペクター-神速-", "ミスタープロスペクター-翔天-", "ミスワキ-瞬天-", "ミホノブルボン-燕闘-", "ミルリーフ-瓏覇-", "ミルリーフ-神速-", "ムトト-煌魂-", "ムトト-燕闘-", "メジロティターン-燕闘-", "メジロデュレン-神煌-", "メジロマックイーン-煌魂-", "メジロマックイーン-燕禊-", "メジロマックイーン-瓏禊-", "メジロマックイーン-翔瓏-", "モンジュー-獅煌-", "モンテプリンス-燕闘-", "モーリス-迅闘-", "ライジングフレーム-天禊-", "ライジングフレーム-瓏禊-", "ライスシャワー-瓏覇-", "ラウンドテーブル-天煌-", "ラウンドテーブル-燕闘-", "ラジャババ-翔魂-", "ラムタラ-燕闘-", "ラムタラ-瓏闘-", "ラムタラ-神煌-", "ランドプリンス-天闘-", "ラーイ-瞬天-", "ラーイ-覇閃-", "ラーイ-閃煌-", "リアルスティール-覇閃-", "リアルスティール-閃煌-", "リファレンスポイント-神速-", "リファール-央迅-", "リファール-覇閃-", "リファール-迅闘-", "リファール-閃煌-", "リュティエ-神速-", "リローンチ-神速-", "ルーラーシップ-天闘-", "レインボウクエスト-天煌-", "レインボウクエスト-瓏覇-", "レインボウクエスト-神煌-", "ロイヤルアカデミー-瞬天-", "ロイヤルアカデミー-覇閃-", "ロベルト-瓏覇-", "ロベルト-闘神-", "ロレンザッチオ-覇魂-", "ロレンザッチオ-闘神-", "ロードカナロア-瞬天-", "ロードカナロア-瞬神-", "ロードカナロア-翔獅-", "ロードカナロア-覇閃-", "ヴァイスリージェント-覇閃-", "ヴィエナ-瓏覇-", "ヴィクトワールピサ-燕闘-", "ヴェイグリーノーブル-瓏闘-", "ヴェンチア-燕巧-", "ヴェンチア-瞬天-"]);
+
+function escapeHtmlSelection(s){
+  return (s ?? '').toString()
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;')
+    .replace(/'/g,'&#39;');
+}
+function getSelectionHorseNameForHighlight(sel){
+  let s = (sel ?? '').toString().trim();
+  if(!s) return '';
+  if(s.startsWith('[祖]')) s = s.replace(/^\[祖\]/, '');
+  const m = s.match(/^(.*?)\(/);
+  return (m ? m[1] : s).trim();
+}
+function isExtractedCsvHorseSelection(sel){
+  const horseName = getSelectionHorseNameForHighlight(sel);
+  return !!horseName && EXTRACTED_CSV_HORSE_NAMES.has(horseName);
+}
+function isAncestorSelection(sel){
+  const s = (sel ?? '').toString().trim();
+  return !!s && s.startsWith('[祖]');
+}
+function rowShouldHighlightHorseName(rowObj){
+  const picks = [rowObj["選択1"], rowObj["選択2"], rowObj["選択3"], rowObj["選択4"]];
+  let hasNonAncestorSelection = false;
+  for(const p of picks){
+    const s = (p ?? '').toString().trim();
+    if(!s) continue;
+    if(isAncestorSelection(s)) continue;
+    hasNonAncestorSelection = true;
+    if(!isExtractedCsvHorseSelection(s)) return false;
+  }
+  return hasNonAncestorSelection;
+}
+function formatSelectionCellHTML(sel){
+  const s = (sel ?? '').toString();
+  if(!s.trim()) return '';
+  const horseName = getSelectionHorseNameForHighlight(s);
+  if(!horseName || !EXTRACTED_CSV_HORSE_NAMES.has(horseName)){
+    return escapeHtmlSelection(s);
+  }
+  const idx = s.indexOf(horseName);
+  if(idx < 0) return escapeHtmlSelection(s);
+  return escapeHtmlSelection(s.slice(0, idx))
+    + '<span class="selected-csv-horse">' + escapeHtmlSelection(horseName) + '</span>'
+    + escapeHtmlSelection(s.slice(idx + horseName.length));
+}
 
 function setStatus(msg){ const el=document.getElementById('status'); if(el) el.textContent = msg; }
 function setWarn(msg){ const el=document.getElementById('warnbox'); if(!el) return; if(msg){ el.style.display=''; el.textContent=msg; } else { el.style.display='none'; el.textContent=''; } }
@@ -963,11 +1019,12 @@ function applyOwnedFilter(out){
 function buildTable(data){
   // 左のリストと同じ「五十音順（ヴはウの次）」で初期表示したいので、
   // 馬名から作ったソートキー列（非表示）を先頭に追加して、それで並べ替えます。
-  const cols = ["__sort","馬名","使用頭数","種類数","因子種類", ...FACTOR_TYPES, "選択1","選択2","選択3","選択4"];
+  const cols = ["__sort","__horseBlue","馬名","使用頭数","種類数","因子種類", ...FACTOR_TYPES, "選択1","選択2","選択3","選択4"];
 
   const thead = document.querySelector('#dataTable thead');
   thead.innerHTML = '<tr>' + cols.map((c)=>{
     if(c === "__sort") return '<th style="display:none;">__sort</th>';
+    if(c === "__horseBlue") return '<th style="display:none;">__horseBlue</th>';
 
     const isPick = (c === "選択1" || c === "選択2" || c === "選択3" || c === "選択4");
     const isNum  = (c === "使用頭数" || c === "種類数");
@@ -987,12 +1044,18 @@ function buildTable(data){
   const rows = data.map(r => {
     const name = (r["馬名"] ?? "").toString();
     const sortKey = makeKanaSortKey(name);
+    const horseBlue = rowShouldHighlightHorseName(r) ? "1" : "0";
     return cols.map(c => {
       if(c === "__sort") return sortKey;
+      if(c === "__horseBlue") return horseBlue;
 
       if(c === "因子種類"){
         const parts = String(r[c] ?? "").split(/\s+/).filter(x=>x);
         return '<div class="factor-badges">' + parts.map(f=>`<span class="factor-badge factor-${f}">${f}</span>`).join('') + '</div>';
+      }
+
+      if(c === "選択1" || c === "選択2" || c === "選択3" || c === "選択4"){
+        return formatSelectionCellHTML(r[c]);
       }
 
       return (r[c] ?? "").toString();
@@ -1008,7 +1071,7 @@ function buildTable(data){
 
   g_dt = $("#dataTable").DataTable({
     data: rows,
-    columns: cols.map((c)=>({ title:c, visible: c !== "__sort" })),
+    columns: cols.map((c)=>({ title:c, visible: c !== "__sort" && c !== "__horseBlue" })),
     scrollX: false,
     pageLength: 25,
     autoWidth: false,
@@ -1036,7 +1099,13 @@ function buildTable(data){
       { targets: Array.from({length: factorEnd - factorStart + 1}, (_,i)=>factorStart+i).slice(1), className: 'factor-col' },
       { targets: [cols.indexOf("使用頭数"), cols.indexOf("種類数")], className: 'num-col' },
       { targets: [cols.indexOf("選択1"), cols.indexOf("選択2"), cols.indexOf("選択3"), cols.indexOf("選択4")], className: 'pick-col' }
-    ]
+    ],
+    createdRow: function(row, data){
+      const horseBlueIdx = cols.indexOf("__horseBlue");
+      if(horseBlueIdx >= 0 && data[horseBlueIdx] === "1" && row.cells && row.cells[0]){
+        row.cells[0].classList.add('selected-csv-horse');
+      }
+    }
   });
   // 追加注釈（PC: Show entries 横）
   try{
@@ -1105,7 +1174,8 @@ function buildTable(data){
       fhtml += `<span class="factor-badge factor-${ch}">${ch}</span>`;
     }
 
-    return `<div class="mpickmeta">${escapeHtml(meta)}</div><div class="mpickfactors">${fhtml}</div>`;
+    const metaClass = isExtractedCsvHorseSelection(pickStr) ? ' selected-csv-horse' : '';
+    return `<div class="mpickmeta${metaClass}">${escapeHtml(meta)}</div><div class="mpickfactors">${fhtml}</div>`;
   }
 
   
@@ -1117,6 +1187,7 @@ function renderMobileCards(cols){
     if(!window.g_dt) return;
 
     const idxName = cols.indexOf('馬名');
+    const idxHorseBlue = cols.indexOf('__horseBlue');
     const factorCols = ['短','速','底','長','適','丈','早','晩','堅','難','走','中']
       .map(k=>({k, i: cols.indexOf(k)}))
       .filter(o=>o.i>=0);
@@ -1133,16 +1204,18 @@ function renderMobileCards(cols){
       const horse = (row[idxName] ?? '').toString();
       if(!horse) continue;
       if(!cur || horse !== cur.horse){
-        cur = { horse, rows: [] };
+        cur = { horse, rows: [], horseBlue: false };
         groups.push(cur);
       }
+      if(idxHorseBlue >= 0 && row[idxHorseBlue] === '1') cur.horseBlue = true;
       cur.rows.push(row);
     }
 
     let html = '';
     for(const g of groups){
+      const headerClass = g.horseBlue ? 'mgroupHeader selected-csv-horse' : 'mgroupHeader';
       html += `<div class="mgroup">` +
-              `<div class="mgroupHeader" role="button" tabindex="0">${escapeHtml(g.horse)}</div>` +
+              `<div class="${headerClass}" role="button" tabindex="0">${escapeHtml(g.horse)}</div>` +
               `<div class="mgroupBody">`;
 
       for(const row of g.rows){
