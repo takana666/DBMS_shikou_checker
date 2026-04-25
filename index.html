@@ -456,6 +456,11 @@
             <button id="btnNearMiss" type="button" class="smallbtn togglebtn-off">あと１因子: OFF</button>
             <div class="near-note">※新規種が出た際に至高になるか判断用</div>
           </div>
+          <div style="margin-top:8px;">
+            <span>生活応援種＋1種で至高チェック：</span>
+            <button id="btnLifeSupportPlusOne" type="button" class="smallbtn togglebtn-off">生活応援種＋1種: OFF</button>
+            <div class="near-note">※選択1〜4のうち、祖先を除いて青字以外が1つだけの行を表示</div>
+          </div>
 </div>
       </div>
         </div>
@@ -608,6 +613,19 @@ function rowShouldHighlightHorseName(rowObj){
   }
   return hasNonAncestorSelection;
 }
+function rowIsLifeSupportPlusOne(rowObj){
+  const picks = [rowObj["選択1"], rowObj["選択2"], rowObj["選択3"], rowObj["選択4"]];
+  let blueCount = 0;
+  let nonBlueCount = 0;
+  for(const p of picks){
+    const s = (p ?? '').toString().trim();
+    if(!s) continue;
+    if(isAncestorSelection(s)) continue;
+    if(isExtractedCsvHorseSelection(s)) blueCount += 1;
+    else nonBlueCount += 1;
+  }
+  return blueCount >= 1 && nonBlueCount === 1;
+}
 function formatSelectionCellHTML(sel){
   const s = (sel ?? '').toString();
   if(!s.trim()) return '';
@@ -694,6 +712,7 @@ let g_ownedVar=new Set();
 let g_ownedFilterOn=false;
 let g_ownedExpanded = new Set(); // 正規化馬名の展開状態
 let g_nearMissOn=false;
+let g_lifeSupportPlusOneOn=false;
 let g_lastNormalHorseSet=null; // 通常成立馬名セット（除外用）
 let g_lastNormalOut=null;
 
@@ -1011,6 +1030,11 @@ function applyOwnedFilter(out){
   // 右表への反映（保有バリエーションのみ）
   if(g_ownedFilterOn){
     filtered = filtered.filter(r => rowIsOwnedOnly(r));
+  }
+
+  // 生活応援種＋1種：選択1〜4のうち、祖先を除いて青字以外が1つだけの行
+  if(g_lifeSupportPlusOneOn){
+    filtered = filtered.filter(r => rowIsLifeSupportPlusOne(r));
   }
 
   return filtered;
@@ -1474,6 +1498,20 @@ function updateNearMissButton(){
   }
 }
 
+function updateLifeSupportPlusOneButton(){
+  const btn = document.getElementById('btnLifeSupportPlusOne');
+  if(!btn) return;
+  if(g_lifeSupportPlusOneOn){
+    btn.textContent = '生活応援種＋1種: ON';
+    btn.classList.remove('togglebtn-off');
+    btn.classList.add('togglebtn-on');
+  }else{
+    btn.textContent = '生活応援種＋1種: OFF';
+    btn.classList.remove('togglebtn-on');
+    btn.classList.add('togglebtn-off');
+  }
+}
+
 document.getElementById('btnFilterOwned').addEventListener('click', ()=>{
   g_ownedFilterOn = !g_ownedFilterOn;
   saveOwnedFilterToStorage();
@@ -1491,6 +1529,12 @@ document.getElementById('btnNearMiss').addEventListener('click', ()=>{
   g_nearMissOn = !g_nearMissOn;
   updateNearMissButton();
   scheduleRecompute();
+});
+
+document.getElementById('btnLifeSupportPlusOne').addEventListener('click', ()=>{
+  g_lifeSupportPlusOneOn = !g_lifeSupportPlusOneOn;
+  updateLifeSupportPlusOneButton();
+  refreshTable();
 });
 
 document.getElementById('btnOwnedAll').addEventListener('click', ()=>{
@@ -1603,6 +1647,8 @@ async function boot(){
   g_lastNormalHorseSet = null;
   g_lastNormalOut = null;
   updateNearMissButton();
+  g_lifeSupportPlusOneOn = false;
+  updateLifeSupportPlusOneButton();
 
   setWarn('');
   setStatus('mydata.csv を読み込み中...');
