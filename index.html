@@ -457,9 +457,9 @@
             <div class="near-note">※新規種が出た際に至高になるか判断用</div>
           </div>
           <div style="margin-top:8px;">
-            <span>生活応援種＋1種で至高チェック：</span>
-            <button id="btnLifeSupportPlusOne" type="button" class="smallbtn togglebtn-off">生活応援種＋1種: OFF</button>
-            <div class="near-note">※選択1〜4のうち、祖先を除いて青字以外が1つだけの行を表示</div>
+            <span>生産応援種＋1種で至高チェック：</span>
+            <button id="btnLifeSupportPlusOne" type="button" class="smallbtn togglebtn-off">生産応援種＋1種: OFF</button>
+            <div class="near-note">※選択1〜4のうち、祖先を除いて青字（生産応援種）以外が1つだけの行を表示</div>
           </div>
 </div>
       </div>
@@ -1502,11 +1502,11 @@ function updateLifeSupportPlusOneButton(){
   const btn = document.getElementById('btnLifeSupportPlusOne');
   if(!btn) return;
   if(g_lifeSupportPlusOneOn){
-    btn.textContent = '生活応援種＋1種: ON';
+    btn.textContent = '生産応援種＋1種: ON';
     btn.classList.remove('togglebtn-off');
     btn.classList.add('togglebtn-on');
   }else{
-    btn.textContent = '生活応援種＋1種: OFF';
+    btn.textContent = '生産応援種＋1種: OFF';
     btn.classList.remove('togglebtn-on');
     btn.classList.add('togglebtn-off');
   }
