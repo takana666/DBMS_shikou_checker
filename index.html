@@ -1097,12 +1097,13 @@ function applyOwnedFilter(out){
 function buildTable(data){
   // 左のリストと同じ「五十音順（ヴはウの次）」で初期表示したいので、
   // 馬名から作ったソートキー列（非表示）を先頭に追加して、それで並べ替えます。
-  const cols = ["__sort","__horseBlue","馬名","使用頭数","種類数","因子種類", ...FACTOR_TYPES, "選択1","選択2","選択3","選択4"];
+  const cols = ["__sort","__horseBlue","馬名","使用頭数","種類数","因子種類", ...FACTOR_TYPES, "選択1","選択2","選択3","選択4", "__raw選択1","__raw選択2","__raw選択3","__raw選択4"];
 
   const thead = document.querySelector('#dataTable thead');
   thead.innerHTML = '<tr>' + cols.map((c)=>{
     if(c === "__sort") return '<th style="display:none;">__sort</th>';
     if(c === "__horseBlue") return '<th style="display:none;">__horseBlue</th>';
+    if(c.startsWith("__raw選択")) return `<th style="display:none;">${c}</th>`;
 
     const isPick = (c === "選択1" || c === "選択2" || c === "選択3" || c === "選択4");
     const isNum  = (c === "使用頭数" || c === "種類数");
@@ -1126,6 +1127,10 @@ function buildTable(data){
     return cols.map(c => {
       if(c === "__sort") return sortKey;
       if(c === "__horseBlue") return horseBlue;
+      if(c === "__raw選択1") return (r["選択1"] ?? "").toString();
+      if(c === "__raw選択2") return (r["選択2"] ?? "").toString();
+      if(c === "__raw選択3") return (r["選択3"] ?? "").toString();
+      if(c === "__raw選択4") return (r["選択4"] ?? "").toString();
 
       if(c === "因子種類"){
         const parts = String(r[c] ?? "").split(/\s+/).filter(x=>x);
@@ -1149,7 +1154,7 @@ function buildTable(data){
 
   g_dt = $("#dataTable").DataTable({
     data: rows,
-    columns: cols.map((c)=>({ title:c, visible: c !== "__sort" && c !== "__horseBlue" })),
+    columns: cols.map((c)=>({ title:c, visible: c !== "__sort" && c !== "__horseBlue" && !c.startsWith("__raw選択") })),
     scrollX: false,
     pageLength: 25,
     autoWidth: false,
@@ -1257,7 +1262,7 @@ function renderMobileCards(cols){
     const factorCols = FACTOR_TYPES
       .map(k=>({k, i: cols.indexOf(k)}))
       .filter(o=>o.i>=0);
-    const pickCols = ['選択1','選択2','選択3','選択4']
+    const pickCols = ['__raw選択1','__raw選択2','__raw選択3','__raw選択4']
       .map(k=>cols.indexOf(k))
       .filter(i=>i>=0);
 
