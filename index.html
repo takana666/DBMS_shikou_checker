@@ -12,6 +12,8 @@
   <style>
     body { font-family: Arial, sans-serif; margin: 16px; }
     h2 { margin: 0 0 8px; }
+    #dataUpdateDate { font-size: 13px; color:#444; margin-top:2px; }
+    body.dark #dataUpdateDate { color:#b8bfcc; }
     .note { font-size: 13px; color:#444; margin: 0 0 10px; }
     .container { display:flex; gap:14px; align-items:flex-start; flex-wrap: nowrap; }
     .left { flex: 0 0 420px; width: 420px; min-width: 420px; max-width: 420px; padding: 10px; border: 1px solid #ddd; border-radius: 10px; background:#fff; }
@@ -264,7 +266,7 @@
         white-space:nowrap;          /* 折り返し禁止 */
         overflow:hidden;             /* 横スクロール禁止（はみ出しは隠す） */
         display:grid;
-        grid-template-columns: 1.6fr repeat(12, 1fr);
+        grid-template-columns: 1.6fr repeat(14, 1fr);
         gap:1px;
         align-items:stretch;
       }
@@ -412,11 +414,45 @@
     .selected-csv-horse { color:#0066ff !important; font-weight:800; }
     body.dark .selected-csv-horse { color:#4da3ff !important; }
 
+
+    /* ===== 14因子対応: 添付画像から抽出したRGBで上書き ===== */
+    #dataTable thead th.factor-col.factor-短, .factor-badge.factor-短 { background: rgb(253,253,0) !important; border-color: rgb(253,253,0) !important; }
+    #dataTable tbody td.factor-col.factor-短 { background: rgba(253,253,0,0.10) !important; }
+    #dataTable thead th.factor-col.factor-速, .factor-badge.factor-速 { background: rgb(253,253,163) !important; border-color: rgb(253,253,163) !important; }
+    #dataTable tbody td.factor-col.factor-速 { background: rgba(253,253,163,0.10) !important; }
+    #dataTable thead th.factor-col.factor-底, .factor-badge.factor-底 { background: rgb(252,110,0) !important; border-color: rgb(252,110,0) !important; }
+    #dataTable tbody td.factor-col.factor-底 { background: rgba(252,110,0,0.10) !important; }
+    #dataTable thead th.factor-col.factor-長, .factor-badge.factor-長 { background: rgb(0,253,253) !important; border-color: rgb(0,253,253) !important; }
+    #dataTable tbody td.factor-col.factor-長 { background: rgba(0,253,253,0.10) !important; }
+    #dataTable thead th.factor-col.factor-走, .factor-badge.factor-走 { background: rgb(241,238,234) !important; border-color: rgb(241,238,234) !important; }
+    #dataTable tbody td.factor-col.factor-走 { background: rgba(241,238,234,0.10) !important; }
+    #dataTable thead th.factor-col.factor-中, .factor-badge.factor-中 { background: rgb(17,126,40) !important; border-color: rgb(17,126,40) !important; }
+    #dataTable tbody td.factor-col.factor-中 { background: rgba(17,126,40,0.10) !important; }
+    #dataTable thead th.factor-col.factor-強, .factor-badge.factor-強 { background: rgb(58,64,106) !important; border-color: rgb(58,64,106) !important; }
+    #dataTable tbody td.factor-col.factor-強 { background: rgba(58,64,106,0.10) !important; }
+    #dataTable thead th.factor-col.factor-雷, .factor-badge.factor-雷 { background: rgb(210,64,96) !important; border-color: rgb(210,64,96) !important; }
+    #dataTable tbody td.factor-col.factor-雷 { background: rgba(210,64,96,0.10) !important; }
+    #dataTable thead th.factor-col.factor-堅, .factor-badge.factor-堅 { background: rgb(162,162,164) !important; border-color: rgb(162,162,164) !important; }
+    #dataTable tbody td.factor-col.factor-堅 { background: rgba(162,162,164,0.10) !important; }
+    #dataTable thead th.factor-col.factor-難, .factor-badge.factor-難 { background: rgb(252,0,252) !important; border-color: rgb(252,0,252) !important; }
+    #dataTable tbody td.factor-col.factor-難 { background: rgba(252,0,252,0.10) !important; }
+    #dataTable thead th.factor-col.factor-適, .factor-badge.factor-適 { background: rgb(70,130,255) !important; border-color: rgb(70,130,255) !important; }
+    #dataTable tbody td.factor-col.factor-適 { background: rgba(70,130,255,0.10) !important; }
+    #dataTable thead th.factor-col.factor-丈, .factor-badge.factor-丈 { background: rgb(254,173,222) !important; border-color: rgb(254,173,222) !important; }
+    #dataTable tbody td.factor-col.factor-丈 { background: rgba(254,173,222,0.10) !important; }
+    #dataTable thead th.factor-col.factor-早, .factor-badge.factor-早 { background: rgb(0,254,0) !important; border-color: rgb(0,254,0) !important; }
+    #dataTable tbody td.factor-col.factor-早 { background: rgba(0,254,0,0.10) !important; }
+    #dataTable thead th.factor-col.factor-晩, .factor-badge.factor-晩 { background: rgb(168,223,5) !important; border-color: rgb(168,223,5) !important; }
+    #dataTable tbody td.factor-col.factor-晩 { background: rgba(168,223,5,0.10) !important; }
+
 </style>
 </head>
 <body>
   <div class="topbar">
-  <h2 style="margin:0;">至高種・組合せ検索</h2>
+  <div>
+    <h2 style="margin:0;">至高種・組合せ検索</h2>
+    <div id="dataUpdateDate">データ更新日：読み込み中...</div>
+  </div>
   <label class="theme-toggle">
     <span>ダーク</span>
     <input type="checkbox" id="chkDarkMode">
@@ -503,14 +539,16 @@
             <button type="button" class="sortbtn factor-badge factor-速" data-col="速">速</button>
             <button type="button" class="sortbtn factor-badge factor-底" data-col="底">底</button>
             <button type="button" class="sortbtn factor-badge factor-長" data-col="長">長</button>
+            <button type="button" class="sortbtn factor-badge factor-走" data-col="走">走</button>
+            <button type="button" class="sortbtn factor-badge factor-中" data-col="中">中</button>
+            <button type="button" class="sortbtn factor-badge factor-強" data-col="強">強</button>
+            <button type="button" class="sortbtn factor-badge factor-雷" data-col="雷">雷</button>
+            <button type="button" class="sortbtn factor-badge factor-堅" data-col="堅">堅</button>
+            <button type="button" class="sortbtn factor-badge factor-難" data-col="難">難</button>
             <button type="button" class="sortbtn factor-badge factor-適" data-col="適">適</button>
             <button type="button" class="sortbtn factor-badge factor-丈" data-col="丈">丈</button>
             <button type="button" class="sortbtn factor-badge factor-早" data-col="早">早</button>
             <button type="button" class="sortbtn factor-badge factor-晩" data-col="晩">晩</button>
-            <button type="button" class="sortbtn factor-badge factor-堅" data-col="堅">堅</button>
-            <button type="button" class="sortbtn factor-badge factor-難" data-col="難">難</button>
-            <button type="button" class="sortbtn factor-badge factor-走" data-col="走">走</button>
-            <button type="button" class="sortbtn factor-badge factor-中" data-col="中">中</button>
           </div>
         </div>
         <div id="mobileList" class="mobile-only" aria-label="スマホ用結果リスト"></div>
@@ -573,7 +611,7 @@ function makeKanaSortKey(name){
   s = s.replace(/ヴ/g, 'ウ\u3099'); // ヴ -> ヴ
   return s;
 }
-const FACTOR_TYPES = ["短","速","底","長","適","丈","早","晩","堅","難","走","中"];
+const FACTOR_TYPES = ["短","速","底","長","走","中","強","雷","堅","難","適","丈","早","晩"];
 const FACTOR_SET = new Set(FACTOR_TYPES);
 
 const EXTRACTED_CSV_HORSE_NAMES = new Set(["アイアンリージ-瓏闘-", "アイリッシュリヴァー-燕闘-", "アウザール-闘神-", "アグネスタキオン-獅煌-", "アグネスタキオン-瞬天-", "アグネスデジタル-天煌-", "アグネスデジタル-央天-", "アグネスデジタル-瞬天-", "アメリゴ-覇魂-", "アリダー-央魂-", "アリダー-獅闘-", "アリバイ-燕闘-", "アリバイ-瞬天-", "アルザオ-獅煌-", "アレッジド-覇魂-", "アンダースタンディング-獅闘-", "イクイノックス-獅煌-", "イクイノックス-神速-", "イージーゴア-覇魂-", "エイシンヒカリ-翔獅-", "エイシンフラッシュ-天禊-", "エタン-神速-", "エタン-闘神-", "エピファネイア-天煌-", "エルコンドルパサー-天闘-", "エルコンドルパサー-央燕-", "エルコンドルパサー-覇閃-", "オグリキャップ-天煌-", "オグリキャップ-燕禊-", "オグリキャップ-獅煌-", "オグリキャップ-神速-", "オグリキャップ-翔迅-", "オペラハウス-天煌-", "オペラハウス-燕闘-", "オルフェーヴル-天靭-", "オルフェーヴル-神速-", "オルフェーヴル-翔燕-", "オーギュストロダン-央燕-", "カイフタラ-瓏覇-", "カリフォルニアクローム-天闘-", "ガリレオ-天煌-", "ガリレオ-央天-", "ガルチ-天禊-", "キズナ-覇閃-", "キタサンブラック-天煌-", "キャメロット-煌魂-", "キャロルハウス-天煌-", "キングカメハメハ-天煌-", "キングカメハメハ-瞬天-", "キングカメハメハ-迅闘-", "キングズベスト-天煌-", "キングズベスト-獅闘-", "キングズベスト-瑚闘-", "キングヘイロー-覇閃-", "キングマンボ-央瓏-", "キングマンボ-獅煌-", "キングマンボ-瓏覇-", "キングマンボ-神煌-", "キートゥザミント-瞬天-", "クライムカイザー-翔天-", "クレペロ-瞬天-", "クレペロ-瞬神-", "クレームデラクレーム-覇閃-", "クロフネ-覇閃-", "グラスワンダー-天闘-", "グラスワンダー-獅闘-", "グラスワンダー-瓏覇-", "グリーングラス-瓏闘-", "グロースターク-天煌-", "グロースターク-翔燕-", "コジーン-天闘-", "コントレイル-天煌-", "コントレイル-央燕-", "コントレイル-神速-", "コートマーシャル-瞬天-", "ゴールドシップ-天煌-", "ゴールドシップ-瓏覇-", "ゴールドシップ-神狂-", "ゴールドシップ-覇魂-", "サイテーション-燕禊-", "サイテーション-燕闘-", "サイテーション-神速-", "サイテーション-翔瑚-", "サイレンススズカ-瞬天-", "サイレンススズカ-神速-", "サイレンススズカ-覇閃-", "サイレンススズカ-迅闘-", "サクラショウリ-天闘-", "サクラショウリ-瓏覇-", "サクラバクシンオー-瞬神-", "サクラユタカオー-天煌-", "サッカーボーイ-天煌-", "サッカーボーイ-翔瑚-", "サドラーズウェルズ-燕闘-", "サドラーズウェルズ-獅煌-", "サンデーサイレンス-神煌-", "サンデーサイレンス-神速-", "サンデーサイレンス-翔天-", "サンデーサイレンス-覇閃-", "サーゲイロード-獅煌-", "ザミンストレル-天煌-", "ザミンストレル-天禊-", "シャーペンアップ-瞬神-", "シャーペンアップ-覇閃-", "シャーペンアップ-迅闘-", "シルバーバック-天煌-", "シルヴァーホーク-獅闘-", "シロッコ-天煌-", "シロッコ-燕禊-", "シロッコ-神速-", "シンザン-獅煌-", "シンザン-神速-", "シンザン-闘神-", "シンボリルドルフ-神速-", "シンボリルドルフ-覇閃-", "シーザスターズ-天闘-", "シーザスターズ-獅煌-", "シーフュリュー-瞬天-", "シーフュリュー-覇閃-", "ジャスタウェイ-獅闘-", "ステイゴールド-天煌-", "ステイゴールド-央獅-", "ステイゴールド-瓏覇-", "ストームキャット-瑚狂-", "スペシャルウィーク-央瓏-", "スペシャルウィーク-瓏覇-", "スペシャルウィーク-神煌-", "スペシャルウィーク-神速-", "スペシャルウィーク-覇魂-", "スーパークリーク-燕闘-", "セイウンスカイ-天煌-", "セイウンスカイ-瓏覇-", "セクレタリアト-瑚狂-", "セクレタリアト-神狂-", "セントクレスピン-央瑚-", "セントクレスピン-瑚闘-", "セントクレスピン-神速-", "セントニコラスアビー-天闘-", "セントニコラスアビー-翔天-", "セントパディ-瓏覇-", "ソヴィエトスター-覇魂-", "タイテエム-天煌-", "タイテエム-瓏覇-", "タイトルホルダー-瓏覇-", "タイトルホルダー-神煌-", "タイムレスモーメント-瑚闘-", "タマモクロス-煌魂-", "タマモクロス-神煌-", "ダイワメジャー-覇閃-", "ダノンレジェンド-瑚闘-", "ダマスカス-天闘-", "ダマスカス-央魂-", "ダマスカス-闘神-", "ダンシングブレーヴ-瞬天-", "ダンシングモス-天煌-", "ダンシングモス-瓏覇-", "ダンシングモス-神煌-", "ダンスインザダーク-燕闘-", "ダンスインザダーク-神煌-", "ダンチヒ-瞬天-", "ダンチヒ-翔天-", "ダンチヒ-覇閃-", "ダンテ-瞬天-", "ティズナウ-覇魂-", "テイエムオペラオー-獅煌-", "テスコボーイ-央迅-", "テスコボーイ-瓏覇-", "テスコボーイ-覇閃-", "テスコボーイ-閃煌-", "テューダーミンストレル-瓏覇-", "テューダーミンストレル-神速-", "テューダーメロディ-瑚狂-", "テンポイント-覇魂-", "ディープインパクト-天煌-", "ディープインパクト-煌魂-", "ディープインパクト-獅煌-", "ディープインパクト-翔燕-", "デリングドゥ-天闘-", "トウカイテイオー-央獅-", "トウカイテイオー-獅煌-", "トウカイテイオー-覇魂-", "トウショウボーイ-天禊-", "トウショウボーイ-獅煌-", "トニービン-天煌-", "トニービン-燕闘-", "トニービン-覇煌-", "トムロルフ-燕巧-", "トムロルフ-瑚巧-", "トルカータータッソ-燕闘-", "ドゥラメンテ-天煌-", "ドゥラメンテ-獅煌-", "ドゥラメンテ-神速-", "ドウデュース-翔天-", "ドクターフェイガー-覇閃-", "ドリームジャーニー-央瓏-", "ドリームジャーニー-瞬天-", "ドリームジャーニー-神速-", "ナシュア-獅闘-", "ナスルーラ-神狂-", "ナリタブライアン-天煌-", "ナリタブライアン-燕闘-", "ナリタブライアン-神速-", "ニアークティック-央天-", "ニアークティック-神速-", "ニジンスキー-天煌-", "ニジンスキー-燕闘-", "ニジンスキー-瓏覇-", "ニットエイト-瑚狂-", "ニホンピロウイナー-天禊-", "ニホンピロウイナー-瞬神-", "ヌレイエフ-瞬天-", "ヌレイエフ-覇閃-", "ネアルコ-央燕-", "ネアルコ-燕闘-", "ネアルコ-翔天-", "ネイエフ-燕闘-", "ネイティヴダンサー-獅闘-", "ネオユニヴァース-天煌-", "ネヴァーセイダイ-瓏闘-", "ネヴァービート-燕禊-", "ノーザンダンサー-央燕-", "ノーザンダンサー-闘神-", "ノーザンテースト-瓏闘-", "ノーザンテースト-神速-", "ノーザンテースト-煉禊-", "ノーザンテースト-閃禊-", "ハイセイコー-天煌-", "ハイペリオン-天闘-", "ハイペリオン-瓏覇-", "ハビタット-瞬神-", "ハンターコム-覇閃-", "ハーツクライ-瓏覇-", "バゴ-瓏覇-", "バステッド-燕巧-", "バステッド-燕禊-", "バックパサー-瞬天-", "バリモス-天闘-", "バーイード-瞬天-", "パーシア-央魂-", "パーシア-瓏覇-", "パーシア-神煌-", "パーソロン-天煌-", "パーソロン-獅煌-", "パーソロン-神速-", "ヒズマジェスティ-央瓏-", "ヒズマジェスティ-瓏闘-", "ヒズマジェスティ-神煌-", "ヒンドスタン-天煌-", "ヒンドスタン-央魂-", "ヒンドスタン-煌魂-", "ピーシズオブエイト-瓏覇-", "ファインニードル-覇閃-", "ファンタスティックライト-燕闘-", "フジキセキ-神速-", "フライトライン-天闘-", "フランケル-天闘-", "ブライアンズタイム-天煌-", "ブライアンズタイム-瑚闘-", "ブライアンズタイム-瞬天-", "ブライアンズタイム-神速-", "ブラッシンググルーム-瑚狂-", "ブリガディアジェラード-央燕-", "ブリガディアジェラード-瑚闘-", "ブリガディアジェラード-瞬天-", "ブリガディアジェラード-神速-", "プリンスキロ-燕闘-", "プリンスキロ-翔燕-", "ヘイルトゥリーズン-獅煌-", "ヘイロー-神速-", "ヘクタープロテクター-覇閃-", "ホッコータルマエ-天煌-", "ホーンビーム-神煌-", "ボールドラッド-央獅-", "ボールドラッド-獅闘-", "ボールドルーラー-天闘-", "ボールドルーラー-瓏闘-", "マイリージャン-燕闘-", "マイリージャン-獅禊-", "マグニテュード-天煌-", "マグニテュード-瓏覇-", "マヤノトップガン-翔瓏-", "マルゼンスキー-獅闘-", "マルゼンスキー-瞬神-", "マルゼンスキー-覇閃-", "マンハッタンカフェ-瓏闘-", "マンハッタンカフェ-神煌-", "ミスターシービー-燕闘-", "ミスタープロスペクター-天煌-", "ミスタープロスペクター-瑚闘-", "ミスタープロスペクター-神速-", "ミスタープロスペクター-翔天-", "ミスワキ-瞬天-", "ミホノブルボン-燕闘-", "ミルリーフ-瓏覇-", "ミルリーフ-神速-", "ムトト-煌魂-", "ムトト-燕闘-", "メジロティターン-燕闘-", "メジロデュレン-神煌-", "メジロマックイーン-煌魂-", "メジロマックイーン-燕禊-", "メジロマックイーン-瓏禊-", "メジロマックイーン-翔瓏-", "モンジュー-獅煌-", "モンテプリンス-燕闘-", "モーリス-迅闘-", "ライジングフレーム-天禊-", "ライジングフレーム-瓏禊-", "ライスシャワー-瓏覇-", "ラウンドテーブル-天煌-", "ラウンドテーブル-燕闘-", "ラジャババ-翔魂-", "ラムタラ-燕闘-", "ラムタラ-瓏闘-", "ラムタラ-神煌-", "ランドプリンス-天闘-", "ラーイ-瞬天-", "ラーイ-覇閃-", "ラーイ-閃煌-", "リアルスティール-覇閃-", "リアルスティール-閃煌-", "リファレンスポイント-神速-", "リファール-央迅-", "リファール-覇閃-", "リファール-迅闘-", "リファール-閃煌-", "リュティエ-神速-", "リローンチ-神速-", "ルーラーシップ-天闘-", "レインボウクエスト-天煌-", "レインボウクエスト-瓏覇-", "レインボウクエスト-神煌-", "ロイヤルアカデミー-瞬天-", "ロイヤルアカデミー-覇閃-", "ロベルト-瓏覇-", "ロベルト-闘神-", "ロレンザッチオ-覇魂-", "ロレンザッチオ-闘神-", "ロードカナロア-瞬天-", "ロードカナロア-瞬神-", "ロードカナロア-翔獅-", "ロードカナロア-覇閃-", "ヴァイスリージェント-覇閃-", "ヴィエナ-瓏覇-", "ヴィクトワールピサ-燕闘-", "ヴェイグリーノーブル-瓏闘-", "ヴェンチア-燕巧-", "ヴェンチア-瞬天-"]);
@@ -641,6 +679,19 @@ function formatSelectionCellHTML(sel){
 }
 
 function setStatus(msg){ const el=document.getElementById('status'); if(el) el.textContent = msg; }
+function setDataUpdateDate(dateStr){
+  const el = document.getElementById('dataUpdateDate');
+  if(el) el.textContent = 'データ更新日：' + (dateStr || '不明');
+}
+function formatYmdFromHttpDate(httpDate){
+  if(!httpDate) return '';
+  const d = new Date(httpDate);
+  if(Number.isNaN(d.getTime())) return '';
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}/${m}/${day}`;
+}
 function setWarn(msg){ const el=document.getElementById('warnbox'); if(!el) return; if(msg){ el.style.display=''; el.textContent=msg; } else { el.style.display='none'; el.textContent=''; } }
 function factorsFromRow(row, idxMap){
   const f = [];
@@ -720,6 +771,9 @@ let g_lastNormalOut=null;
 async function fetchText(url){
   const res = await fetch(url + "?v=" + Date.now(), { cache: "no-store" });
   if(!res.ok) throw new Error(`fetch失敗: ${url} (${res.status})`);
+  if(String(url).includes('mydata.csv')){
+    setDataUpdateDate(formatYmdFromHttpDate(res.headers.get('Last-Modified')) || '不明');
+  }
   return await res.text();
 }
 function loadOwnedFromStorage(){
@@ -1090,8 +1144,8 @@ function buildTable(data){
     $("#dataTable").DataTable().destroy();
   }
 
-  const factorStart = cols.indexOf("短");
-  const factorEnd   = cols.indexOf("中");
+  const factorStart = cols.indexOf(FACTOR_TYPES[0]);
+  const factorEnd   = cols.indexOf(FACTOR_TYPES[FACTOR_TYPES.length - 1]);
 
   g_dt = $("#dataTable").DataTable({
     data: rows,
@@ -1104,23 +1158,11 @@ function buildTable(data){
     // 初期表示：五十音順（__sort で昇順）
     order: [[0,'asc']],
     columnDefs: [
-      { targets: [factorStart],
-    createdRow: function(row, data, dataIndex){
-      // 因子列（短〜中）に factor-xx クラスを付与して列着色を有効化
-      const colIndex = {
-        '短': cols.indexOf('短'), '速': cols.indexOf('速'), '底': cols.indexOf('底'), '長': cols.indexOf('長'),
-        '適': cols.indexOf('適'), '丈': cols.indexOf('丈'), '早': cols.indexOf('早'), '晩': cols.indexOf('晩'),
-        '堅': cols.indexOf('堅'), '難': cols.indexOf('難'), '走': cols.indexOf('走'), '中': cols.indexOf('中')
-      };
-      Object.keys(colIndex).forEach(k=>{
-        const idx = colIndex[k];
-        if(idx >= 0){
-          const cell = row.cells[idx];
-          if(cell) cell.classList.add('factor-' + k);
-        }
-      });
-    }, className: 'factor-col first-factor' },
-      { targets: Array.from({length: factorEnd - factorStart + 1}, (_,i)=>factorStart+i).slice(1), className: 'factor-col' },
+      ...FACTOR_TYPES.map((factor, i)=>({
+        targets: cols.indexOf(factor),
+        className: 'factor-col' + (i === 0 ? ' first-factor' : ''),
+        createdCell: function(td){ td.classList.add('factor-' + factor); }
+      })),
       { targets: [cols.indexOf("使用頭数"), cols.indexOf("種類数")], className: 'num-col' },
       { targets: [cols.indexOf("選択1"), cols.indexOf("選択2"), cols.indexOf("選択3"), cols.indexOf("選択4")], className: 'pick-col' }
     ],
@@ -1191,7 +1233,7 @@ function buildTable(data){
 
     // 因子：丸括弧なし、因子漢字のみ
     factors = (factors || '').replace(/[\s　]/g,'');
-    factors = factors.replace(/[^短速底長適丈早晩堅難走中]/g,'');
+    factors = factors.split('').filter(ch => FACTOR_SET.has(ch)).join('');
 
     let fhtml = '';
     for(const ch of factors.split('')){
@@ -1212,7 +1254,7 @@ function renderMobileCards(cols){
 
     const idxName = cols.indexOf('馬名');
     const idxHorseBlue = cols.indexOf('__horseBlue');
-    const factorCols = ['短','速','底','長','適','丈','早','晩','堅','難','走','中']
+    const factorCols = FACTOR_TYPES
       .map(k=>({k, i: cols.indexOf(k)}))
       .filter(o=>o.i>=0);
     const pickCols = ['選択1','選択2','選択3','選択4']
@@ -1311,7 +1353,7 @@ function setupMobileSortBar(cols){
     // colName -> dt column index
     const map = {};
     map['馬名'] = 0; // __sort
-    ['短','速','底','長','適','丈','早','晩','堅','難','走','中'].forEach(k=>{
+    FACTOR_TYPES.forEach(k=>{
       const i = cols.indexOf(k);
       if(i >= 0) map[k] = i;
     });
@@ -1669,6 +1711,7 @@ async function boot(){
 
   }catch(e){
     console.error(e);
+    setDataUpdateDate('不明');
     setStatus('読み込みエラー: ' + (e && e.message ? e.message : String(e)));
     setWarn('mydata.csv の自動読み込みに失敗しました。ローカルサーバ or GitHub Pages 上で実行しているか確認してください。');
     renderOwnedListFromOut([]);
